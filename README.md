@@ -115,20 +115,9 @@ To connect a real backend: edit `BASE_URL` in `src/services/api.js`, then uncomm
 - 8 service-category colors (plumbing, electrical, cleaning, HVAC, carpentry, painting, gardening, moving)
 - System fonts by default (zero asset risk)
 
-## 🇩🇪 German/European Market Details
-
-- Full German UI copy throughout
-- SEPA Lastschrift + IBAN validation (`DE` prefix check) alongside card/PayPal
-- 5-digit PLZ (postal code) validation
-- 24/7 **Notdienst** (emergency) flow with live technician count and hotline
-- Euro currency formatting via `Intl.NumberFormat('de-DE', { currency: 'EUR' })`
-- DD.MM.YYYY date format everywhere
-
 ## 📌 Known Limitations (by design, not bugs)
 
 - Backend is mocked — see `// TODO` markers in `src/services/*.js`
-- Auth has no token persistence between app restarts (add `expo-secure-store` when going to production)
-- Native splash screen still uses the legacy `app.json` `splash` key, which the SDK 54 bundler accepts without warning; the modern `expo-splash-screen` plugin (`~31.0.13` for this SDK) is the documented upgrade path if you want a native (pre-JS) splash rather than the in-app animated `SplashScreen.js` component already included
 - No automated tests yet (Jest config not included)
 
 ## 📜 License
