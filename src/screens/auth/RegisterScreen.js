@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
-import { Button, Input, Header } from '../../components/common';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Button, Input } from '../../components/common';
 import { useApp } from '../../context/AppContext';
+import { useLanguage } from '../../i18n';
+import { useTheme } from '../../constants/ThemeContext';
 import { isValidEmail, isValidPhone, isStrongPassword } from '../../utils';
-import { colors, typography, spacing } from '../../constants/theme';
 
 const RegisterScreen = ({ navigation }) => {
   const { register } = useApp();
+  const { t } = useLanguage();
+  const { colors } = useTheme();
+  const d = colors.dispatch;
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(d);
   const [form, setForm]       = useState({ name: '', email: '', phone: '', password: '' });
   const [errors, setErrors]   = useState({});
   const [loading, setLoading] = useState(false);
@@ -16,11 +24,11 @@ const RegisterScreen = ({ navigation }) => {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim())   e.name = 'Name ist erforderlich';
-    if (!isValidEmail(form.email)) e.email = 'Gültige E-Mail erforderlich';
-    if (!isValidPhone(form.phone)) e.phone = 'Gültige Telefonnummer erforderlich';
-    if (!isStrongPassword(form.password)) e.password = 'Mind. 8 Zeichen, mit Buchstaben und Zahl';
-    if (!agreed) e.terms = 'Bitte Bedingungen akzeptieren';
+    if (!form.name.trim())   e.name = t('register.nameRequired');
+    if (!isValidEmail(form.email)) e.email = t('register.emailInvalid');
+    if (!isValidPhone(form.phone)) e.phone = t('register.phoneInvalid');
+    if (!isStrongPassword(form.password)) e.password = t('register.passwordWeak');
+    if (!agreed) e.terms = t('register.termsRequired');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -30,61 +38,68 @@ const RegisterScreen = ({ navigation }) => {
     setLoading(true);
     const result = await register(form);
     setLoading(false);
-    if (result.success) navigation.replace('Home');
+    if (result.success) navigation.replace('MainTabs', { screen: 'Home' });
   };
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <Header title="Konto erstellen" onBackPress={() => navigation.goBack()} />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.heading}>Neu hier?</Text>
-        <Text style={styles.subheading}>Erstellen Sie jetzt Ihr kostenloses Konto</Text>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={16} color={d.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t('register.title')}</Text>
+      </View>
 
-        <Input label="Name" placeholder="Max Mustermann" value={form.name} onChangeText={set('name')} icon="person-outline" error={errors.name} />
-        <Input label="E-Mail" placeholder="ihre.email@beispiel.de" value={form.email} onChangeText={set('email')} icon="mail-outline" keyboardType="email-address" autoCapitalize="none" error={errors.email} />
-        <Input label="Telefon" placeholder="+49 123 456 7890" value={form.phone} onChangeText={set('phone')} icon="call-outline" keyboardType="phone-pad" error={errors.phone} />
-        <Input label="Passwort" placeholder="Mindestens 8 Zeichen" value={form.password} onChangeText={set('password')} icon="lock-closed-outline" secureTextEntry showPasswordToggle error={errors.password} />
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={styles.heading}>{t('register.heading')}</Text>
+        <Text style={styles.subheading}>{t('register.subheading')}</Text>
+
+        <Input label={t('register.name')} placeholder={t('register.namePlaceholder')} value={form.name} onChangeText={set('name')} icon="person-outline" error={errors.name} />
+        <Input label={t('register.email')} placeholder={t('register.emailPlaceholder')} value={form.email} onChangeText={set('email')} icon="mail-outline" keyboardType="email-address" autoCapitalize="none" error={errors.email} />
+        <Input label={t('register.phone')} placeholder={t('register.phonePlaceholder')} value={form.phone} onChangeText={set('phone')} icon="call-outline" keyboardType="phone-pad" error={errors.phone} />
+        <Input label={t('register.password')} placeholder={t('register.passwordPlaceholder')} value={form.password} onChangeText={set('password')} icon="lock-closed-outline" secureTextEntry showPasswordToggle error={errors.password} />
 
         <TouchableOpacity style={styles.checkRow} onPress={() => setAgreed(!agreed)}>
           <View style={[styles.checkbox, agreed && styles.checkboxActive]}>
-            {agreed ? <Text style={styles.checkmark}>✓</Text> : null}
+            {agreed ? <Ionicons name="checkmark" size={13} color={d.canvas} /> : null}
           </View>
           <Text style={styles.checkText}>
-            Ich stimme den <Text style={styles.link}>Nutzungsbedingungen</Text> und der{' '}
-            <Text style={styles.link}>Datenschutzerklärung</Text> zu
+            {t('register.agreeTerms')}<Text style={styles.link}>{t('register.termsLink')}</Text>{t('register.and')}<Text style={styles.link}>{t('register.privacyLink')}</Text>
           </Text>
         </TouchableOpacity>
         {errors.terms ? <Text style={styles.errorText}>{errors.terms}</Text> : null}
 
         <Button onPress={handleRegister} loading={loading} disabled={!agreed} icon="arrow-forward" size="lg" style={styles.btn}>
-          Registrieren
+          {t('register.registerButton')}
         </Button>
 
         <View style={styles.loginRow}>
-          <Text style={styles.loginText}>Haben Sie bereits ein Konto? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}><Text style={styles.loginLink}>Anmelden</Text></TouchableOpacity>
+          <Text style={styles.loginText}>{t('register.haveAccount')}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Login')}><Text style={styles.loginLink}>{t('register.signIn')}</Text></TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 };
 
-const styles = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: colors.white },
-  content:        { padding: spacing.xl, paddingBottom: spacing['2xl'] },
-  heading:        { fontSize: typography.fontSize['3xl'], fontWeight: typography.fontWeight.bold, color: colors.primary.main, marginBottom: spacing.xs },
-  subheading:     { fontSize: typography.fontSize.base, color: colors.gray[600], marginBottom: spacing.xl },
-  checkRow:       { flexDirection: 'row', alignItems: 'flex-start', marginBottom: spacing.md },
-  checkbox:       { width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: colors.gray[300], alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm, marginTop: 1 },
-  checkboxActive: { backgroundColor: colors.accent.main, borderColor: colors.accent.main },
-  checkmark:      { color: colors.white, fontWeight: typography.fontWeight.bold, fontSize: 14 },
-  checkText:      { flex: 1, fontSize: typography.fontSize.sm, color: colors.gray[600], lineHeight: 20 },
-  link:           { color: colors.accent.main, fontWeight: typography.fontWeight.medium },
-  errorText:      { fontSize: typography.fontSize.sm, color: colors.status.error, marginBottom: spacing.md },
-  btn:            { marginTop: spacing.sm },
-  loginRow:       { flexDirection: 'row', justifyContent: 'center', marginTop: spacing.xl },
-  loginText:      { fontSize: typography.fontSize.base, color: colors.gray[600] },
-  loginLink:      { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semiBold, color: colors.accent.main },
+const createStyles = (d) => StyleSheet.create({
+  container:      { flex: 1, backgroundColor: d.canvas },
+  header:         { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20 },
+  backBtn:        { width: 30, height: 30, borderRadius: 8, borderWidth: 1, borderColor: d.lineSoft, alignItems: 'center', justifyContent: 'center' },
+  headerTitle:    { fontSize: 17, fontWeight: '700', color: d.text },
+  content:        { padding: 20, paddingBottom: 40 },
+  heading:        { fontSize: 20, fontWeight: '700', color: d.text, marginBottom: 4 },
+  subheading:     { fontSize: 13, color: d.textSoft, marginBottom: 22 },
+  checkRow:       { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
+  checkbox:       { width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: d.lineSoft, alignItems: 'center', justifyContent: 'center', marginRight: 10, marginTop: 1 },
+  checkboxActive: { backgroundColor: d.line, borderColor: d.line },
+  checkText:      { flex: 1, fontSize: 12.5, color: d.textSoft, lineHeight: 19 },
+  link:           { color: d.line, fontWeight: '600' },
+  errorText:      { fontSize: 12, color: d.danger, marginBottom: 14 },
+  btn:            { marginTop: 6 },
+  loginRow:       { flexDirection: 'row', justifyContent: 'center', marginTop: 22 },
+  loginText:      { fontSize: 13, color: d.textSoft },
+  loginLink:      { fontSize: 13, fontWeight: '700', color: d.line },
 });
 
 export default RegisterScreen;

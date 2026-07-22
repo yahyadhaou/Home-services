@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Card, Header, EmptyState } from '../../components/common';
+import { Header, EmptyState } from '../../components/common';
 import { useApp } from '../../context/AppContext';
-import { colors, typography, spacing } from '../../constants/theme';
+import { useLanguage } from '../../i18n';
+import { useTheme } from '../../constants/ThemeContext';
 
 const ALL_PROVIDERS = [
   { id: '1', name: 'Müller GmbH',       rating: 4.9, reviews: 234, category: 'Klempner',  distance: '1.2 km', price: '€€'  },
@@ -14,31 +15,35 @@ const ALL_PROVIDERS = [
 
 const FavoritesScreen = ({ navigation }) => {
   const { favorites, removeFavorite } = useApp();
+  const { t } = useLanguage();
+  const { colors } = useTheme();
+  const d = colors.dispatch;
+  const styles = createStyles(d);
   const favProviders = ALL_PROVIDERS.filter((p) => favorites.includes(p.id));
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => navigation.navigate('ProviderDetail', { provider: item })} activeOpacity={0.7}>
-      <Card style={styles.card}>
+    <TouchableOpacity onPress={() => navigation.navigate('ProviderDetail', { provider: item })} activeOpacity={0.8}>
+      <View style={styles.card}>
         <View style={styles.row}>
-          <View style={styles.avatar}><Ionicons name="business" size={26} color={colors.accent.main} /></View>
+          <View style={styles.avatar}><Ionicons name="business-outline" size={22} color={d.line} /></View>
           <View style={styles.info}>
             <Text style={styles.name}>{item.name}</Text>
             <Text style={styles.category}>{item.category}</Text>
             <View style={styles.metaRow}>
-              <Ionicons name="star" size={13} color={colors.accent.main} /><Text style={styles.rating}>{item.rating}</Text><Text style={styles.reviews}>({item.reviews})</Text>
+              <Ionicons name="star" size={12} color={d.amber} /><Text style={styles.rating}>{item.rating}</Text><Text style={styles.reviews}>({item.reviews})</Text>
               <View style={styles.dot} /><Text style={styles.distance}>{item.distance}</Text>
               <View style={styles.dot} /><Text style={styles.price}>{item.price}</Text>
             </View>
           </View>
-          <TouchableOpacity onPress={() => removeFavorite(item.id)} style={styles.heartBtn}><Ionicons name="heart" size={22} color="#F87171" /></TouchableOpacity>
+          <TouchableOpacity onPress={() => removeFavorite(item.id)} style={styles.heartBtn}><Ionicons name="heart" size={19} color={d.danger} /></TouchableOpacity>
         </View>
-      </Card>
+      </View>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <Header title="Favoriten" onBackPress={() => navigation.goBack()} />
+      <Header title={t('favorites.title')} onBackPress={() => navigation.goBack()} />
       <FlatList
         data={favProviders}
         renderItem={renderItem}
@@ -48,10 +53,10 @@ const FavoritesScreen = ({ navigation }) => {
         ListEmptyComponent={
           <EmptyState
             icon="heart-outline"
-            title="Keine Favoriten"
-            subtitle="Tippen Sie auf das Herz-Symbol bei einem Dienstleister, um ihn hier zu speichern."
-            actionLabel="Dienstleister entdecken"
-            onAction={() => navigation.navigate('Home')}
+            title={t('favorites.empty')}
+            subtitle={t('favorites.emptySubtitle')}
+            actionLabel={t('favorites.discoverButton')}
+            onAction={() => navigation.navigate('MainTabs', { screen: 'Home' })}
           />
         }
       />
@@ -59,22 +64,22 @@ const FavoritesScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background.default },
-  list: { padding: spacing.xl },
-  card: { marginBottom: spacing.md },
+const createStyles = (d) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: d.canvas },
+  list: { padding: 18 },
+  card: { backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 12, padding: 13, marginBottom: 10 },
   row: { flexDirection: 'row', alignItems: 'center' },
-  avatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.gray[100], alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm },
+  avatar: { width: 48, height: 48, borderRadius: 12, borderWidth: 1, borderColor: d.lineSoft, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
   info: { flex: 1 },
-  name: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semiBold, color: colors.gray[900] },
-  category: { fontSize: typography.fontSize.sm, color: colors.accent.main, fontWeight: typography.fontWeight.medium, marginTop: 1 },
+  name: { fontSize: 13.5, fontWeight: '700', color: d.text },
+  category: { fontSize: 12, color: d.line, fontWeight: '600', marginTop: 1 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4, flexWrap: 'wrap' },
-  rating: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.gray[800] },
-  reviews: { fontSize: typography.fontSize.sm, color: colors.gray[500] },
-  dot: { width: 3, height: 3, borderRadius: 2, backgroundColor: colors.gray[400] },
-  distance: { fontSize: typography.fontSize.sm, color: colors.gray[500] },
-  price: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.gray[600] },
-  heartBtn: { padding: spacing.xs },
+  rating: { fontSize: 12, fontWeight: '600', color: d.text },
+  reviews: { fontSize: 12, color: d.textSoft },
+  dot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: d.textSoft },
+  distance: { fontSize: 12, color: d.textSoft },
+  price: { fontSize: 12, fontWeight: '600', color: d.textSoft },
+  heartBtn: { padding: 4 },
 });
 
 export default FavoritesScreen;

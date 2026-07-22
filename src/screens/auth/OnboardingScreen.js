@@ -1,21 +1,28 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, borderRadius } from '../../constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLanguage } from '../../i18n';
+import { useTheme } from '../../constants/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
-
-const slides = [
-  { id: '1', title: 'Schnelle Handwerker', description: 'Finden Sie qualifizierte Handwerker in Ihrer Nähe innerhalb von Minuten.', icon: 'hammer',           gradient: [colors.primary.main, colors.primary.light] },
-  { id: '2', title: 'Sofort verfügbar',     description: 'Echtzeit-Verfügbarkeit und sofortige Buchungsbestätigung.',                icon: 'time',             gradient: [colors.accent.main, colors.accent.dark] },
-  { id: '3', title: 'Sichere Zahlung',      description: 'SEPA, Kreditkarte und digitale Zahlungsmethoden – alles sicher.',          icon: 'shield-checkmark', gradient: [colors.secondary.main, colors.secondary.dark] },
-  { id: '4', title: 'Notfall-Service',      description: '24/7 Notfall-Unterstützung für dringende Reparaturen zu Hause.',           icon: 'alert-circle',     gradient: [colors.status.error, '#B91C1C'] },
-];
+const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
 const OnboardingScreen = ({ navigation }) => {
+  const { t } = useLanguage();
+  const { colors } = useTheme();
+  const d = colors.dispatch;
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(d);
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef(null);
+
+  const slides = [
+    { id: '1', code: '01/SPD', title: t('onboarding.slide1Title'), description: t('onboarding.slide1Desc'), icon: 'hammer-outline' },
+    { id: '2', code: '02/AVL', title: t('onboarding.slide2Title'), description: t('onboarding.slide2Desc'), icon: 'flash-outline' },
+    { id: '3', code: '03/SEC', title: t('onboarding.slide3Title'), description: t('onboarding.slide3Desc'), icon: 'shield-checkmark-outline' },
+    { id: '4', code: '04/SOS', title: t('onboarding.slide4Title'), description: t('onboarding.slide4Desc'), icon: 'alert-circle-outline' },
+  ];
 
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
@@ -34,8 +41,8 @@ const OnboardingScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.skipBtn} onPress={() => navigation.replace('Welcome')}>
-        <Text style={styles.skipText}>Überspringen</Text>
+      <TouchableOpacity style={[styles.skipBtn, { top: insets.top + 16 }]} onPress={() => navigation.replace('Welcome')}>
+        <Text style={styles.skipText}>{t('onboarding.skip')}</Text>
       </TouchableOpacity>
 
       <FlatList
@@ -49,11 +56,14 @@ const OnboardingScreen = ({ navigation }) => {
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         renderItem={({ item }) => (
-          <LinearGradient colors={item.gradient} style={styles.slide}>
-            <View style={styles.iconCircle}><Ionicons name={item.icon} size={80} color={colors.white} /></View>
+          <View style={styles.slide}>
+            <View style={styles.iconCircle}>
+              <Ionicons name={item.icon} size={64} color={d.line} />
+              <Text style={styles.iconCode}>{item.code}</Text>
+            </View>
             <Text style={styles.slideTitle}>{item.title}</Text>
             <Text style={styles.slideDesc}>{item.description}</Text>
-          </LinearGradient>
+          </View>
         )}
       />
 
@@ -64,28 +74,29 @@ const OnboardingScreen = ({ navigation }) => {
           ))}
         </View>
         <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-          <Text style={styles.nextText}>{currentIndex === slides.length - 1 ? "Los geht's" : 'Weiter'}</Text>
-          <Ionicons name="arrow-forward" size={20} color={colors.white} />
+          <Text style={styles.nextText}>{currentIndex === slides.length - 1 ? t('onboarding.getStarted') : t('onboarding.next')}</Text>
+          <Ionicons name="arrow-forward" size={18} color={d.canvas} />
         </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: colors.white },
-  skipBtn:    { position: 'absolute', top: 60, right: spacing.xl, zIndex: 10, padding: spacing.sm },
-  skipText:   { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.medium, color: colors.white },
-  slide:      { width, height: height * 0.75, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl },
-  iconCircle: { width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xl },
-  slideTitle: { fontSize: typography.fontSize['3xl'], fontWeight: typography.fontWeight.bold, color: colors.white, textAlign: 'center', marginBottom: spacing.md },
-  slideDesc:  { fontSize: typography.fontSize.lg, color: colors.white, textAlign: 'center', opacity: 0.9, lineHeight: 28 },
-  footer:     { position: 'absolute', bottom: 80, width: '100%', alignItems: 'center', paddingHorizontal: spacing.xl },
-  pagination: { flexDirection: 'row', marginBottom: spacing.xl },
-  dot:        { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.4)', marginHorizontal: 4 },
-  dotActive:  { width: 24, backgroundColor: colors.accent.main },
-  nextBtn:    { flexDirection: 'row', backgroundColor: colors.primary.main, paddingVertical: spacing.md, paddingHorizontal: spacing.xl, borderRadius: borderRadius.full, alignItems: 'center', gap: spacing.sm },
-  nextText:   { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semiBold, color: colors.white },
+const createStyles = (d) => StyleSheet.create({
+  container:  { flex: 1, backgroundColor: d.canvas },
+  skipBtn:    { position: 'absolute', top: 60, right: 24, zIndex: 10, padding: 8 },
+  skipText:   { fontSize: 14, fontWeight: '500', color: d.textSoft },
+  slide:      { width, height: height * 0.72, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 30 },
+  iconCircle: { width: 148, height: 148, borderRadius: 20, borderWidth: 1.5, borderColor: d.lineSoft, backgroundColor: d.panel, alignItems: 'center', justifyContent: 'center', marginBottom: 30, gap: 8 },
+  iconCode:   { fontSize: 11, letterSpacing: 0.6, color: d.line, fontFamily: MONO },
+  slideTitle: { fontSize: 24, fontWeight: '700', color: d.text, textAlign: 'center', marginBottom: 12 },
+  slideDesc:  { fontSize: 14, color: d.textSoft, textAlign: 'center', lineHeight: 22 },
+  footer:     { position: 'absolute', bottom: 70, width: '100%', alignItems: 'center', paddingHorizontal: 24 },
+  pagination: { flexDirection: 'row', marginBottom: 22 },
+  dot:        { width: 6, height: 6, borderRadius: 3, backgroundColor: d.lineSoft, marginHorizontal: 3 },
+  dotActive:  { width: 20, backgroundColor: d.line },
+  nextBtn:    { flexDirection: 'row', backgroundColor: d.line, paddingVertical: 14, paddingHorizontal: 26, borderRadius: 12, alignItems: 'center', gap: 8 },
+  nextText:   { fontSize: 15, fontWeight: '700', color: d.canvas },
 });
 
 export default OnboardingScreen;

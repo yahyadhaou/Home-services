@@ -1,125 +1,134 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Card, Button } from '../../components/common';
-import { colors, typography, spacing, borderRadius, shadows } from '../../constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Button } from '../../components/common';
+import { useLanguage } from '../../i18n';
+import { useTheme } from '../../constants/ThemeContext';
 
-const { width } = Dimensions.get('window');
+const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
 const SERVICE_META = {
-  Klempner:   { icon: 'water',         color: colors.services.plumbing,   gradient: [colors.services.plumbing, '#1E40AF'] },
-  Elektriker: { icon: 'flash',         color: colors.services.electrical, gradient: [colors.services.electrical, '#B45309'] },
-  Reinigung:  { icon: 'sparkles',      color: colors.services.cleaning,   gradient: [colors.services.cleaning, '#047857'] },
-  Heizung:    { icon: 'thermometer',   color: colors.services.hvac,       gradient: [colors.services.hvac, '#6D28D9'] },
-  Schreiner:  { icon: 'hammer',        color: colors.services.carpentry,  gradient: [colors.services.carpentry, '#92400E'] },
-  Maler:      { icon: 'color-palette', color: colors.services.painting,   gradient: [colors.services.painting, '#BE185D'] },
-  Gärtner:    { icon: 'leaf',          color: colors.services.gardening,  gradient: [colors.services.gardening, '#0F766E'] },
-  Umzug:      { icon: 'car',           color: colors.services.moving,     gradient: [colors.services.moving, '#B91C1C'] },
+  plumber:     { icon: 'water-outline',         code: '01/PLB' },
+  electrician: { icon: 'flash-outline',         code: '02/ELC' },
+  cleaning:    { icon: 'sparkles-outline',      code: '03/CLN' },
+  heating:     { icon: 'thermometer-outline',   code: '04/HVC' },
+  carpenter:   { icon: 'hammer-outline',        code: '05/CRP' },
+  painter:     { icon: 'color-palette-outline', code: '06/PNT' },
+  gardener:    { icon: 'leaf-outline',          code: '07/GRD' },
+  moving:      { icon: 'car-outline',           code: '08/MOV' },
 };
 
-const SUB_SERVICES = {
-  Klempner:   [{ name: 'Rohrverstopfung', urgent: true }, { name: 'Wasserhahn reparieren' }, { name: 'Toilette reparieren' }, { name: 'Wasserleitung' }, { name: 'Heizung Installation' }, { name: 'Sanitär Installation' }],
-  Elektriker: [{ name: 'Steckdose defekt', urgent: true }, { name: 'Sicherung' }, { name: 'Licht installieren' }, { name: 'Kabel verlegen' }, { name: 'Zählerkasten' }, { name: 'Smart Home' }],
-  Reinigung:  [{ name: 'Wohnungsreinigung' }, { name: 'Büroreinigung' }, { name: 'Umzugsreinigung' }, { name: 'Fensterreinigung' }, { name: 'Teppichreinigung' }, { name: 'Baureinigung' }],
-  default:    [{ name: 'Standard Service' }, { name: 'Express Service', urgent: true }, { name: 'Beratung' }, { name: 'Installation' }, { name: 'Reparatur' }, { name: 'Wartung' }],
-};
-
-const FAQS = {
-  Klempner:   [{ q: 'Wie schnell kann ein Klempner kommen?', a: 'In Notfällen innerhalb 1-2 Stunden, reguläre Termine am selben oder nächsten Tag.' }, { q: 'Was kostet ein Klempner?', a: 'Durchschnittlich €80–120 pro Stunde plus Material.' }],
-  Elektriker: [{ q: 'Welche Qualifikationen haben die Elektriker?', a: 'Alle Elektriker sind geprüfte Fachkräfte mit gültiger VDE-Zertifizierung.' }],
-  default:    [{ q: 'Wie wird die Qualität gesichert?', a: 'Alle Dienstleister werden vor Aufnahme geprüft und regelmäßig bewertet.' }],
+const resolveServiceCode = (displayName, t) => {
+  const codes = Object.keys(SERVICE_META);
+  const match = codes.find((code) => t(`home.${code}`) === displayName);
+  return match || 'plumber';
 };
 
 const ServiceCategoryScreen = ({ navigation, route }) => {
-  const serviceName = route.params?.service || 'Klempner';
-  const meta        = SERVICE_META[serviceName] || SERVICE_META.Klempner;
-  const subServices = SUB_SERVICES[serviceName] || SUB_SERVICES.default;
-  const faqs        = FAQS[serviceName] || FAQS.default;
+  const { t } = useLanguage();
+  const { colors } = useTheme();
+  const d = colors.dispatch;
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(d);
+
+  const serviceDisplayName = route.params?.service || t('home.plumber');
+  const serviceCode = resolveServiceCode(serviceDisplayName, t);
+  const meta = SERVICE_META[serviceCode];
   const [expandedFaq, setExpandedFaq] = useState(null);
+
+  const subServices = t(`serviceCategory.subServices.${serviceCode}`) || [];
+  const faqs = t(`serviceCategory.faqs.${serviceCode}`) || [];
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={meta.gradient} style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity style={styles.circleBtn} onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={24} color={colors.white} /></TouchableOpacity>
-          <TouchableOpacity style={styles.circleBtn}><Ionicons name="heart-outline" size={24} color={colors.white} /></TouchableOpacity>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 12 }]}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.circleBtn} onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={16} color={d.text} /></TouchableOpacity>
+          <TouchableOpacity style={styles.circleBtn}><Ionicons name="heart-outline" size={16} color={d.text} /></TouchableOpacity>
         </View>
         <View style={styles.headerBody}>
-          <View style={styles.iconCircle}><Ionicons name={meta.icon} size={44} color={colors.white} /></View>
-          <Text style={styles.headerTitle}>{serviceName}</Text>
-          <Text style={styles.headerSubtitle}>12 Fachkräfte verfügbar</Text>
+          <View style={styles.iconWrap}>
+            <Ionicons name={meta.icon} size={36} color={d.line} />
+            <Text style={styles.iconCode}>{meta.code}</Text>
+          </View>
+          <Text style={styles.headerTitle}>{serviceDisplayName}</Text>
+          <Text style={styles.headerSubtitle}>12 {t('serviceCategory.available')}</Text>
         </View>
-      </LinearGradient>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.statsRow}>
-          {[{ icon: 'star', val: '4.8', lbl: 'Bewertung' }, { icon: 'time', val: '1–2h', lbl: 'Ankunft' }, { icon: 'people', val: '850+', lbl: 'Aufträge' }].map((s, i) => (
-            <Card key={i} style={styles.statCard}><Ionicons name={s.icon} size={22} color={colors.accent.main} /><Text style={styles.statVal}>{s.val}</Text><Text style={styles.statLbl}>{s.lbl}</Text></Card>
+          {[
+            { icon: 'star-outline', val: '4.8',  lbl: t('serviceCategory.rating') },
+            { icon: 'time-outline', val: '1-2H', lbl: t('serviceCategory.arrival') },
+            { icon: 'people-outline', val: '850+', lbl: t('serviceCategory.jobs') },
+          ].map((s, i) => (
+            <View key={i} style={styles.statCard}>
+              <Ionicons name={s.icon} size={16} color={d.line} />
+              <Text style={styles.statVal}>{s.val}</Text>
+              <Text style={styles.statLbl}>{s.lbl.toUpperCase()}</Text>
+            </View>
           ))}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Was benötigen Sie?</Text>
+          <Text style={styles.sectionTitle}>{t('serviceCategory.whatDoYouNeed')}</Text>
           <View style={styles.subGrid}>
             {subServices.map((sub, i) => (
-              <TouchableOpacity key={i} style={styles.subCard} onPress={() => navigation.navigate('ProviderList', { service: sub.name })} activeOpacity={0.7}>
-                <View style={[styles.subIconWrap, { backgroundColor: meta.color + '1A' }]}><Ionicons name={meta.icon} size={22} color={meta.color} /></View>
-                <Text style={styles.subName}>{sub.name}</Text>
-                {sub.urgent ? <View style={styles.urgentBadge}><Text style={styles.urgentText}>Notfall</Text></View> : null}
+              <TouchableOpacity key={i} style={styles.subCard} onPress={() => navigation.navigate('ProviderList', { service: serviceDisplayName })} activeOpacity={0.75}>
+                <Ionicons name={sub.icon} size={20} color={d.line} />
+                <Text style={styles.subName} numberOfLines={2}>{sub.name}</Text>
+                {sub.urgent ? <View style={styles.urgentBadge}><Text style={styles.urgentText}>{t('serviceCategory.emergency').toUpperCase()}</Text></View> : null}
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Häufige Fragen</Text>
+          <Text style={styles.sectionTitle}>{t('serviceCategory.faq')}</Text>
           {faqs.map((faq, i) => (
-            <Card key={i} style={styles.faqCard}>
+            <View key={i} style={styles.faqCard}>
               <TouchableOpacity style={styles.faqHeader} onPress={() => setExpandedFaq(expandedFaq === i ? null : i)}>
                 <Text style={styles.faqQ}>{faq.q}</Text>
-                <Ionicons name={expandedFaq === i ? 'chevron-up' : 'chevron-down'} size={20} color={colors.gray[500]} />
+                <Ionicons name={expandedFaq === i ? 'chevron-up' : 'chevron-down'} size={16} color={d.line} />
               </TouchableOpacity>
               {expandedFaq === i ? <Text style={styles.faqA}>{faq.a}</Text> : null}
-            </Card>
+            </View>
           ))}
         </View>
 
-        <Button onPress={() => navigation.navigate('ProviderList', { service: serviceName })} icon="arrow-forward" size="lg">
-          Verfügbare Fachkräfte anzeigen
+        <Button onPress={() => navigation.navigate('ProviderList', { service: serviceDisplayName })} icon="arrow-forward" size="lg">
+          {t('serviceCategory.viewProviders')}
         </Button>
       </ScrollView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background.default },
-  header: { paddingTop: 60, paddingBottom: spacing.xl, borderBottomLeftRadius: borderRadius.xl, borderBottomRightRadius: borderRadius.xl },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.xl, marginBottom: spacing.lg },
-  circleBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
-  headerBody: { alignItems: 'center', paddingHorizontal: spacing.xl },
-  iconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md },
-  headerTitle: { fontSize: typography.fontSize['3xl'], fontWeight: typography.fontWeight.bold, color: colors.white, marginBottom: spacing.xs },
-  headerSubtitle: { fontSize: typography.fontSize.base, color: colors.white, opacity: 0.9 },
-  content: { flex: 1 },
-  scrollContent: { paddingBottom: spacing.xl },
-  statsRow: { flexDirection: 'row', paddingHorizontal: spacing.xl, marginTop: spacing.lg, gap: spacing.sm, marginBottom: spacing.lg },
-  statCard: { flex: 1, alignItems: 'center', paddingVertical: spacing.md },
-  statVal: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: colors.gray[900], marginTop: 4 },
-  statLbl: { fontSize: typography.fontSize.xs, color: colors.gray[500] },
-  section: { paddingHorizontal: spacing.xl, marginBottom: spacing.xl },
-  sectionTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semiBold, color: colors.primary.main, marginBottom: spacing.md },
-  subGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  subCard: { width: (width - spacing.xl * 2 - spacing.sm) / 2, backgroundColor: colors.white, borderRadius: borderRadius.md, padding: spacing.md, ...shadows.sm },
-  subIconWrap: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
-  subName: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.gray[900] },
-  urgentBadge: { backgroundColor: colors.status.error, borderRadius: 4, paddingHorizontal: spacing.xs, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 4 },
-  urgentText: { fontSize: 10, fontWeight: typography.fontWeight.bold, color: colors.white },
-  faqCard: { marginBottom: spacing.sm },
+const createStyles = (d) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: d.canvas },
+  scrollContent: { padding: 18, paddingBottom: 32 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
+  circleBtn: { width: 30, height: 30, borderRadius: 8, borderWidth: 1, borderColor: d.lineSoft, alignItems: 'center', justifyContent: 'center' },
+  headerBody: { alignItems: 'center', marginBottom: 20 },
+  iconWrap: { width: 84, height: 84, borderRadius: 18, borderWidth: 1.5, borderColor: d.lineSoft, backgroundColor: d.panel, alignItems: 'center', justifyContent: 'center', marginBottom: 12, gap: 4 },
+  iconCode: { fontSize: 9, letterSpacing: 0.4, color: d.line, fontFamily: MONO },
+  headerTitle: { fontSize: 22, fontWeight: '700', color: d.text, marginBottom: 2 },
+  headerSubtitle: { fontSize: 13, color: d.textSoft },
+  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
+  statCard: { flex: 1, alignItems: 'center', paddingVertical: 14, backgroundColor: d.panel, borderRadius: 12, borderWidth: 1, borderColor: d.lineSoft },
+  statVal: { fontSize: 15, fontWeight: '700', color: d.text, marginTop: 4, fontFamily: MONO },
+  statLbl: { fontSize: 9, color: d.textSoft, marginTop: 1, fontFamily: MONO },
+  section: { marginBottom: 20 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: d.text, marginBottom: 12 },
+  subGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  subCard: { width: '48.5%', backgroundColor: d.panel, borderRadius: 12, borderWidth: 1, borderColor: d.lineSoft, padding: 12, minHeight: 96, justifyContent: 'space-between' },
+  subName: { fontSize: 12.5, fontWeight: '600', color: d.text, marginTop: 8 },
+  urgentBadge: { backgroundColor: d.dangerSoft, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 6 },
+  urgentText: { fontSize: 9, fontWeight: '700', color: d.danger, fontFamily: MONO },
+  faqCard: { backgroundColor: d.panel, borderRadius: 10, borderWidth: 1, borderColor: d.lineSoft, padding: 13, marginBottom: 8 },
   faqHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  faqQ: { flex: 1, fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.medium, color: colors.gray[900] },
-  faqA: { fontSize: typography.fontSize.sm, color: colors.gray[600], marginTop: spacing.sm, lineHeight: 22 },
+  faqQ: { flex: 1, fontSize: 13, fontWeight: '600', color: d.text },
+  faqA: { fontSize: 12.5, color: d.textSoft, marginTop: 10, lineHeight: 19 },
 });
 
 export default ServiceCategoryScreen;

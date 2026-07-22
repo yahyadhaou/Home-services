@@ -1,167 +1,246 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Card, Badge } from '../../components/common';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '../../context/AppContext';
-import { colors, typography, spacing, borderRadius, shadows } from '../../constants/theme';
+import { useLanguage } from '../../i18n';
+import { useTheme } from '../../constants/ThemeContext';
 
-const { width } = Dimensions.get('window');
+const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
-const SERVICES = [
-  { id: '1', name: 'Klempner',   icon: 'water',         color: colors.services.plumbing,   available: 12 },
-  { id: '2', name: 'Elektriker', icon: 'flash',         color: colors.services.electrical, available: 8  },
-  { id: '3', name: 'Reinigung',  icon: 'sparkles',      color: colors.services.cleaning,   available: 15 },
-  { id: '4', name: 'Heizung',    icon: 'thermometer',   color: colors.services.hvac,       available: 6  },
-  { id: '5', name: 'Schreiner',  icon: 'hammer',        color: colors.services.carpentry,  available: 10 },
-  { id: '6', name: 'Maler',      icon: 'color-palette', color: colors.services.painting,   available: 14 },
-  { id: '7', name: 'Gärtner',    icon: 'leaf',          color: colors.services.gardening,  available: 9  },
-  { id: '8', name: 'Umzug',      icon: 'car',           color: colors.services.moving,     available: 5  },
+const PRO_DOTS = [
+  { top: '22%', left: '32%', delay: 0 },
+  { top: '64%', left: '70%', delay: 700 },
+  { top: '70%', left: '22%', delay: 1400 },
 ];
 
-const MOCK_BOOKINGS = [
-  { id: 'm1', service: 'Klempner',  provider: 'Müller GmbH', date: '15.05.2025', time: '14:00', status: 'confirmed' },
-  { id: 'm2', service: 'Reinigung', provider: 'Clean Pro',   date: '10.05.2025', time: '10:00', status: 'completed' },
-];
+const RadarPulseDot = ({ delay, color }) => {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.timing(anim, { toValue: 1, duration: 1600, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0, duration: 0, useNativeDriver: true }),
+        Animated.delay(200),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [anim, delay]);
 
-const STATUS_COLOR = { confirmed: colors.status.info, completed: colors.status.success, pending: colors.status.warning };
-const STATUS_LABEL = { confirmed: 'Bestätigt', completed: 'Abgeschlossen', pending: 'Ausstehend' };
+  const scale = anim.interpolate({ inputRange: [0, 1], outputRange: [1, 2.6] });
+  const opacity = anim.interpolate({ inputRange: [0, 1], outputRange: [0.55, 0] });
+
+  return (
+    <View style={styles.proDotWrap}>
+      <Animated.View style={[styles.proDotRing, { backgroundColor: color, transform: [{ scale }], opacity }]} />
+      <View style={[styles.proDotCore, { backgroundColor: color }]} />
+    </View>
+  );
+};
+
+const RadarSweep = ({ color }) => {
+  const spin = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(Animated.timing(spin, { toValue: 1, duration: 3400, easing: Easing.linear, useNativeDriver: true }));
+    loop.start();
+    return () => loop.stop();
+  }, [spin]);
+  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  return <Animated.View style={[styles.sweepRing, { borderTopColor: color, transform: [{ rotate }] }]} />;
+};
 
 const HomeScreen = ({ navigation }) => {
   const { user, bookings } = useApp();
+  const { t } = useLanguage();
+  const { colors } = useTheme();
+  const d = colors.dispatch;
+  const insets = useSafeAreaInsets();
+  const styles2 = createStyles(d);
+
+  const SERVICES = [
+    { code: '01/PLB', icon: 'water-outline', name: t('home.plumber'), available: 12, category: t('home.plumber') },
+    { code: '02/ELC', icon: 'flash-outline', name: t('home.electrician'), available: 8, category: t('home.electrician') },
+    { code: '03/CLN', icon: 'sparkles-outline', name: t('home.cleaning'), available: 15, category: t('home.cleaning') },
+    { code: '04/HVC', icon: 'thermometer-outline', name: t('home.heating'), available: 6, category: t('home.heating') },
+    { code: '05/CRP', icon: 'hammer-outline', name: t('home.carpenter'), available: 10, category: t('home.carpenter') },
+    { code: '06/PNT', icon: 'color-palette-outline', name: t('home.painter'), available: 14, category: t('home.painter') },
+    { code: '07/GRD', icon: 'leaf-outline', name: t('home.gardener'), available: 9, category: t('home.gardener') },
+    { code: '08/MOV', icon: 'car-outline', name: t('home.moving'), available: 5, category: t('home.moving') },
+  ];
+
+  const MOCK_BOOKINGS = [
+    { id: 'm1', service: t('home.plumber'), provider: 'Müller GmbH', date: '15.05.2025', time: '14:00', status: 'confirmed' },
+  ];
   const displayBookings = bookings.length > 0 ? bookings : MOCK_BOOKINGS;
+  const recent = displayBookings[0];
+
+  const bookAgain = (job) => navigation.navigate('Booking', { provider: { name: job.provider }, service: job.service });
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={[colors.primary.main, colors.primary.light]} style={styles.header}>
-        <View style={styles.headerTop}>
+    <View style={[styles2.container, { backgroundColor: d.canvas }]}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles2.scroll, { paddingTop: insets.top + 12 }]}>
+        <View style={styles2.top}>
           <View>
-            <Text style={styles.greeting}>Guten Tag,</Text>
-            <Text style={styles.userName}>{user?.name || 'Willkommen!'}</Text>
+            <Text style={[styles2.greet, { color: d.textSoft }]}>{t('home.greeting').toUpperCase()}</Text>
+            <Text style={[styles2.name, { color: d.text }]}>{user?.name || t('home.welcome')}</Text>
           </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Notifications')}>
-              <Ionicons name="notifications-outline" size={22} color={colors.white} />
-              <View style={styles.badge}><Text style={styles.badgeText}>3</Text></View>
+          <View style={styles2.icrow}>
+            <TouchableOpacity style={[styles2.icbtn, { borderColor: d.lineSoft }]} onPress={() => navigation.navigate('Notifications')}>
+              <Ionicons name="notifications-outline" size={15} color={d.line} />
+              <View style={[styles2.dotLive, { backgroundColor: d.amber, borderColor: d.canvas }]} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Profile')}>
-              <Ionicons name="person-outline" size={22} color={colors.white} />
+            <TouchableOpacity style={[styles2.icbtn, { borderColor: d.lineSoft }]} onPress={() => navigation.navigate('Profile')}>
+              <Ionicons name="person-outline" size={15} color={d.line} />
             </TouchableOpacity>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.searchBar} activeOpacity={0.8} onPress={() => navigation.navigate('Search')}>
-          <Ionicons name="search" size={20} color={colors.gray[400]} />
-          <Text style={styles.searchPlaceholder}>Suche nach Dienstleistungen…</Text>
-          <Ionicons name="options-outline" size={20} color={colors.gray[500]} />
+        <TouchableOpacity style={[styles2.search, { backgroundColor: d.panel, borderColor: d.lineSoft }]} activeOpacity={0.8} onPress={() => navigation.navigate('Search')}>
+          <Ionicons name="search" size={14} color={d.textSoft} />
+          <Text style={[styles2.searchText, { color: d.textSoft }]}>{t('home.searchPlaceholder')}</Text>
         </TouchableOpacity>
-      </LinearGradient>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <TouchableOpacity onPress={() => navigation.navigate('EmergencyBooking')} style={styles.emergencyWrapper}>
-          <LinearGradient colors={[colors.status.error, '#B91C1C']} style={styles.emergencyBanner} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-            <Ionicons name="alert-circle" size={32} color={colors.white} />
-            <View style={styles.emergencyBody}>
-              <Text style={styles.emergencyTitle}>Notfall-Service</Text>
-              <Text style={styles.emergencySubtitle}>24/7 sofort verfügbar</Text>
+        <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('Search')} style={[styles2.radarWrap, { backgroundColor: d.panel, borderColor: d.lineSoft }]}>
+          <View style={styles2.radarTagRow}>
+            <View style={styles2.radarTag}>
+              <View style={[styles2.blinkDot, { backgroundColor: d.amber }]} />
+              <Text style={[styles2.radarTagText, { color: d.line }]}>{t('home.liveDispatch').toUpperCase()}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={22} color={colors.white} />
-          </LinearGradient>
-        </TouchableOpacity>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Dienstleistungen</Text>
-            <TouchableOpacity><Text style={styles.seeAll}>Alle ansehen</Text></TouchableOpacity>
+            <TouchableOpacity style={[styles2.sosBtn, { borderColor: d.danger, backgroundColor: d.dangerSoft }]} onPress={() => navigation.navigate('EmergencyBooking')}>
+              <Text style={[styles2.sosText, { color: d.danger }]}>SOS</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.servicesGrid}>
-            {SERVICES.map((s) => (
-              <TouchableOpacity key={s.id} style={styles.serviceCard} onPress={() => navigation.navigate('ServiceCategory', { service: s.name })} activeOpacity={0.7}>
-                <View style={[styles.serviceIconWrap, { backgroundColor: s.color }]}><Ionicons name={s.icon} size={26} color={colors.white} /></View>
-                <Text style={styles.serviceName} numberOfLines={1}>{s.name}</Text>
-                <Text style={styles.serviceAvail}>{s.available} verfügbar</Text>
-              </TouchableOpacity>
+
+          <View style={styles2.radarField}>
+            <RadarSweep color={d.lineSoft} />
+            <View style={[styles2.center, { borderColor: d.amber }]} />
+            {PRO_DOTS.map((p, i) => (
+              <View key={i} style={[styles2.proDotAbs, { top: p.top, left: p.left }]}>
+                <RadarPulseDot delay={p.delay} color={d.line} />
+              </View>
             ))}
           </View>
-        </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Letzte Buchungen</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('MyBookings')}><Text style={styles.seeAll}>Alle ansehen</Text></TouchableOpacity>
+          <View style={[styles2.radarStats, { borderTopColor: d.lineSoft }]}>
+            <View>
+              <Text style={[styles2.statBig, { color: d.amber }]}>24</Text>
+              <Text style={[styles2.statLbl, { color: d.textSoft }]}>{t('home.prosNearby').toUpperCase()}</Text>
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={[styles2.statBig, { color: d.amber }]}>8 MIN</Text>
+              <Text style={[styles2.statLbl, { color: d.textSoft }]}>{t('home.fastestMatch').toUpperCase()}</Text>
+            </View>
           </View>
-          {displayBookings.slice(0, 2).map((b) => (
-            <TouchableOpacity key={b.id} onPress={() => navigation.navigate('BookingDetail', { booking: b })}>
-              <Card style={styles.bookingCard}>
-                <View style={[styles.bookingBar, { backgroundColor: STATUS_COLOR[b.status] || colors.gray[300] }]} />
-                <View style={styles.bookingInfo}>
-                  <Text style={styles.bookingService}>{b.service}</Text>
-                  <Text style={styles.bookingProvider}>{b.provider}</Text>
-                  <Text style={styles.bookingDate}>{b.date} · {b.time}</Text>
-                </View>
-                <Badge label={STATUS_LABEL[b.status] || b.status} color={STATUS_COLOR[b.status] || colors.gray[600]} />
-              </Card>
+        </TouchableOpacity>
+
+        <View style={styles2.sech}>
+          <Text style={[styles2.sechH, { color: d.text }]}>{t('home.services')}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('ServiceCategory', { service: t('home.plumber') })}>
+            <Text style={[styles2.sechSee, { color: d.line }]}>{t('home.seeAll').toUpperCase()} &gt;</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles2.tiles}>
+          {SERVICES.map((s) => (
+            <TouchableOpacity
+              key={s.code}
+              style={[styles2.tile, { borderColor: d.lineSoft, backgroundColor: d.panel }]}
+              onPress={() => navigation.navigate('ServiceCategory', { service: s.category })}
+              activeOpacity={0.75}
+            >
+              <Text style={[styles2.tileCode, { color: d.line }]}>{s.code}</Text>
+              <Ionicons name={s.icon} size={30} color={d.line} style={styles2.tileIcon} />
+              <Text style={[styles2.tileName, { color: d.text }]} numberOfLines={1}>{s.name}</Text>
+              <Text style={[styles2.tileAvail, { color: d.amber }]}>{s.available} {t('home.available')}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Schnellzugriff</Text>
-          <View style={styles.quickRow}>
-            {[
-              { label: 'Favoriten',     icon: 'heart',    screen: 'Favorites' },
-              { label: 'Zahlung',       icon: 'card',     screen: 'PaymentMethods' },
-              { label: 'Einstellungen', icon: 'settings', screen: 'Settings' },
-            ].map((a) => (
-              <TouchableOpacity key={a.label} style={styles.quickCard} onPress={() => navigation.navigate(a.screen)}>
-                <Ionicons name={a.icon} size={24} color={colors.accent.main} />
-                <Text style={styles.quickLabel}>{a.label}</Text>
+        {recent ? (
+          <>
+            <View style={styles2.sech}>
+              <Text style={[styles2.sechH, { color: d.text }]}>{t('home.recentJob')}</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('MyBookings')}>
+                <Text style={[styles2.sechSee, { color: d.line }]}>{t('home.history').toUpperCase()} &gt;</Text>
               </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+            </View>
+            <TouchableOpacity style={[styles2.ticket, { backgroundColor: d.panel, borderColor: d.lineSoft }]} onPress={() => navigation.navigate('BookingDetail', { booking: recent })} activeOpacity={0.85}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles2.jobNo, { color: d.line }]}>JOB-{String(recent.id).toUpperCase().slice(-4).padStart(4, '2')}</Text>
+                <Text style={[styles2.jobTitle, { color: d.text }]}>{recent.service}</Text>
+                <Text style={[styles2.jobSub, { color: d.textSoft }]}>{recent.provider} · {recent.date}, {recent.time}</Text>
+              </View>
+              <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                <View style={[styles2.stamp, { borderColor: d.green }]}>
+                  <Text style={[styles2.stampText, { color: d.green }]}>{t('home.statusConfirmed').toUpperCase()}</Text>
+                </View>
+                <TouchableOpacity onPress={() => bookAgain(recent)}>
+                  <Text style={[styles2.bookAgain, { color: d.line }]}>{t('home.bookAgain')}</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </>
+        ) : null}
       </ScrollView>
     </View>
   );
 };
 
+const createStyles = () => StyleSheet.create({
+  container: { flex: 1 },
+  scroll: { padding: 18, paddingBottom: 24 },
+  top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  greet: { fontSize: 11, letterSpacing: 0.6, fontFamily: MONO },
+  name: { fontSize: 20, fontWeight: '700', letterSpacing: -0.2, marginTop: 2 },
+  icrow: { flexDirection: 'row', gap: 8 },
+  icbtn: { width: 32, height: 32, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  dotLive: { position: 'absolute', top: -3, right: -3, width: 8, height: 8, borderRadius: 4, borderWidth: 2 },
+
+  search: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 16 },
+  searchText: { fontSize: 13, fontFamily: MONO },
+
+  radarWrap: { borderRadius: 16, borderWidth: 1, overflow: 'hidden', marginBottom: 20 },
+  radarTagRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, paddingTop: 10 },
+  radarTag: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  blinkDot: { width: 6, height: 6, borderRadius: 3 },
+  radarTagText: { fontSize: 10, letterSpacing: 1, fontFamily: MONO },
+  sosBtn: { borderWidth: 1, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  sosText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.5, fontFamily: MONO },
+
+  radarField: { height: 118, alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  center: { width: 10, height: 10, borderRadius: 5, borderWidth: 1.5 },
+  proDotAbs: { position: 'absolute' },
+
+  radarStats: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: 1 },
+  statBig: { fontSize: 17, fontWeight: '700', fontFamily: MONO },
+  statLbl: { fontSize: 9, letterSpacing: 0.4, marginTop: 2, fontFamily: MONO },
+
+  sech: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 },
+  sechH: { fontSize: 15, fontWeight: '700' },
+  sechSee: { fontSize: 10, letterSpacing: 0.4, fontFamily: MONO },
+
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
+  tile: { width: '23.5%', aspectRatio: 0.88, borderRadius: 14, borderWidth: 1, padding: 8, alignItems: 'center', justifyContent: 'center' },
+  tileIcon: { marginVertical: 6 },
+  tileCode: { position: 'absolute', top: 8, left: 8, fontSize: 8, letterSpacing: 0.3, fontFamily: MONO },
+  tileName: { fontSize: 11.5, fontWeight: '700', textAlign: 'center' },
+  tileAvail: { fontSize: 9, fontFamily: MONO, marginTop: 2, textAlign: 'center' },
+
+  ticket: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, padding: 14, gap: 10 },
+  jobNo: { fontSize: 10, letterSpacing: 0.4, fontFamily: MONO, marginBottom: 3 },
+  jobTitle: { fontSize: 14, fontWeight: '600' },
+  jobSub: { fontSize: 11, marginTop: 2 },
+  stamp: { borderWidth: 1.5, borderRadius: 5, paddingHorizontal: 6, paddingVertical: 3, transform: [{ rotate: '-6deg' }] },
+  stampText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.3, fontFamily: MONO },
+  bookAgain: { fontSize: 11, fontWeight: '600', fontFamily: MONO },
+});
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background.default },
-  header: { paddingTop: 60, paddingBottom: spacing.xl, paddingHorizontal: spacing.xl, borderBottomLeftRadius: borderRadius.xl, borderBottomRightRadius: borderRadius.xl },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg },
-  greeting: { fontSize: typography.fontSize.sm, color: colors.white, opacity: 0.85 },
-  userName: { fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.white },
-  headerActions: { flexDirection: 'row', gap: spacing.sm },
-  iconBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  badge: { position: 'absolute', top: 0, right: 0, backgroundColor: colors.status.error, borderRadius: 10, width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
-  badgeText: { fontSize: 10, fontWeight: typography.fontWeight.bold, color: colors.white },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.white, borderRadius: borderRadius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: spacing.sm, ...shadows.sm },
-  searchPlaceholder: { flex: 1, fontSize: typography.fontSize.base, color: colors.gray[400] },
-  content: { flex: 1 },
-  scrollContent: { paddingBottom: spacing.xl },
-  emergencyWrapper: { margin: spacing.xl, borderRadius: borderRadius.md, overflow: 'hidden', ...shadows.md },
-  emergencyBanner: { flexDirection: 'row', alignItems: 'center', padding: spacing.lg, gap: spacing.md },
-  emergencyBody: { flex: 1 },
-  emergencyTitle: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semiBold, color: colors.white },
-  emergencySubtitle: { fontSize: typography.fontSize.sm, color: colors.white, opacity: 0.9 },
-  section: { paddingHorizontal: spacing.xl, marginBottom: spacing.xl },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  sectionTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semiBold, color: colors.primary.main },
-  seeAll: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.accent.main },
-  servicesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  serviceCard: { width: (width - spacing.xl * 2 - spacing.sm * 3) / 4, alignItems: 'center', backgroundColor: colors.white, borderRadius: borderRadius.md, paddingVertical: spacing.sm, paddingHorizontal: 4, ...shadows.sm },
-  serviceIconWrap: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
-  serviceName: { fontSize: 11, fontWeight: typography.fontWeight.medium, color: colors.gray[800], textAlign: 'center' },
-  serviceAvail: { fontSize: 10, color: colors.gray[500], textAlign: 'center' },
-  bookingCard: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm, paddingVertical: spacing.md, paddingHorizontal: spacing.md },
-  bookingBar: { width: 4, height: 56, borderRadius: 2, marginRight: spacing.md },
-  bookingInfo: { flex: 1 },
-  bookingService: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semiBold, color: colors.gray[900] },
-  bookingProvider: { fontSize: typography.fontSize.sm, color: colors.gray[600], marginTop: 2 },
-  bookingDate: { fontSize: typography.fontSize.xs, color: colors.gray[500], marginTop: 2 },
-  quickRow: { flexDirection: 'row', gap: spacing.md },
-  quickCard: { flex: 1, backgroundColor: colors.white, borderRadius: borderRadius.md, padding: spacing.md, alignItems: 'center', ...shadows.sm },
-  quickLabel: { fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.medium, color: colors.gray[700], marginTop: spacing.xs, textAlign: 'center' },
+  proDotWrap: { width: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
+  proDotRing: { position: 'absolute', width: 7, height: 7, borderRadius: 3.5 },
+  proDotCore: { width: 7, height: 7, borderRadius: 3.5 },
+  sweepRing: { position: 'absolute', width: 108, height: 108, borderRadius: 54, borderWidth: 2, borderColor: 'transparent' },
 });
 
 export default HomeScreen;

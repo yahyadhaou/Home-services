@@ -1,18 +1,24 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { colors, spacing, borderRadius, shadows } from '../../constants/theme';
+import { useTheme } from '../../constants/ThemeContext';
 
-const Card = ({ children, variant = 'elevated', padding = spacing.md, style, ...props }) => (
-  <View style={[styles.base, styles[variant], { padding }, style]} {...props}>
-    {children}
-  </View>
-);
+const Card = ({ children, variant = 'elevated', padding, style, ...props }) => {
+  const { colors } = useTheme();
+  const d = colors.dispatch;
+  const styles = createStyles(d);
+  const resolvedPadding = padding !== undefined ? padding : 14;
+  return (
+    <View style={[styles.base, styles[variant], { padding: resolvedPadding }, style]} {...props}>
+      {children}
+    </View>
+  );
+};
 
-const styles = StyleSheet.create({
-  base:     { backgroundColor: colors.white, borderRadius: borderRadius.md },
-  elevated: shadows.sm,
-  outlined: { borderWidth: 1, borderColor: colors.gray[200] },
-  flat:     { backgroundColor: colors.gray[50] },
+const createStyles = (d) => StyleSheet.create({
+  base:     { backgroundColor: d.panel, borderRadius: 12, borderWidth: 1, borderColor: d.lineSoft },
+  elevated: {},
+  outlined: { borderColor: d.line },
+  flat:     { backgroundColor: d.canvas, borderColor: d.lineSoft },
 });
 
 export default Card;

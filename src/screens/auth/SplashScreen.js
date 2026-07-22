@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { colors, typography, spacing } from '../../constants/theme';
+import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
+import { useTheme } from '../../constants/ThemeContext';
+
+const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
 const SplashScreen = ({ navigation }) => {
+  const { colors } = useTheme();
+  const d = colors.dispatch;
   const fadeAnim  = React.useRef(new Animated.Value(0)).current;
-  const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
+  const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -18,23 +21,32 @@ const SplashScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <LinearGradient colors={[colors.primary.main, colors.primary.light, colors.accent.main]} style={styles.container}>
+    <View style={[styles.container, { backgroundColor: d.canvas }]}>
       <Animated.View style={[styles.logoContainer, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
-        <View style={styles.logoBox}><Text style={styles.logoLetter}>H</Text></View>
-        <Text style={styles.brandText}>HomeServices</Text>
-        <Text style={styles.tagline}>Sofortige Hilfe für Ihr Zuhause</Text>
+        <View style={[styles.logoBox, { borderColor: d.line }]}>
+          <Text style={[styles.logoLetter, { color: d.line }]}>H</Text>
+        </View>
+        <Text style={[styles.brandText, { color: d.text }]}>HomeServices</Text>
+        <Text style={[styles.tagline, { color: d.textSoft }]}>INSTANT HELP FOR YOUR HOME</Text>
+        <View style={styles.statusRow}>
+          <View style={[styles.dot, { backgroundColor: d.amber }]} />
+          <Text style={[styles.statusText, { color: d.textSoft }]}>DISPATCH SYSTEM ONLINE</Text>
+        </View>
       </Animated.View>
-    </LinearGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container:     { flex: 1, alignItems: 'center', justifyContent: 'center' },
   logoContainer: { alignItems: 'center' },
-  logoBox:       { width: 100, height: 100, backgroundColor: colors.white, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.lg },
-  logoLetter:    { fontSize: 56, fontWeight: typography.fontWeight.bold, color: colors.accent.main },
-  brandText:     { fontSize: typography.fontSize['3xl'], fontWeight: typography.fontWeight.bold, color: colors.white, marginBottom: spacing.xs },
-  tagline:       { fontSize: typography.fontSize.base, color: colors.white, opacity: 0.9 },
+  logoBox:       { width: 88, height: 88, borderRadius: 20, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
+  logoLetter:    { fontSize: 44, fontWeight: '700' },
+  brandText:     { fontSize: 24, fontWeight: '700', marginBottom: 4 },
+  tagline:       { fontSize: 11, letterSpacing: 1, fontFamily: MONO },
+  statusRow:     { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 24 },
+  dot:           { width: 6, height: 6, borderRadius: 3 },
+  statusText:    { fontSize: 10, letterSpacing: 0.5, fontFamily: MONO },
 });
 
 export default SplashScreen;

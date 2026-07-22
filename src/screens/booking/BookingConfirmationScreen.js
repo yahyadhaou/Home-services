@@ -1,120 +1,132 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Card, Button, Header } from '../../components/common';
+import { Button, Header } from '../../components/common';
 import { useBookings } from '../../hooks';
-import { colors, typography, spacing, borderRadius, shadows } from '../../constants/theme';
+import { useLanguage } from '../../i18n';
+import { useTheme } from '../../constants/ThemeContext';
+
+const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
 const BookingConfirmationScreen = ({ navigation, route }) => {
   const { create, loading } = useBookings();
-  const { provider, date, time, urgency } = route.params;
+  const { t } = useLanguage();
+  const { colors } = useTheme();
+  const d = colors.dispatch;
+  const styles = createStyles(d);
+  const { provider, date, time, urgency, frequency, estimatedTotal } = route.params;
   const isEmergency   = urgency === 'emergency';
   const basePrice     = 80;
   const servicePrice  = 40;
   const emergencyFee  = isEmergency ? 30 : 0;
-  const total         = basePrice + servicePrice + emergencyFee;
+  const total         = estimatedTotal ?? (basePrice + servicePrice + emergencyFee);
 
   const handleConfirm = async () => {
     const result = await create({
-      service:  'Handwerker',
+      service:  t('home.plumber'),
       provider: provider.name || 'Müller GmbH',
-      date, time, urgency, total,
+      date, time, urgency, total, frequency,
     });
     if (result.success) navigation.navigate('BookingDetail', { booking: result.booking });
   };
 
   return (
     <View style={styles.container}>
-      <Header title="Buchung bestätigen" onBackPress={() => navigation.goBack()} />
+      <Header title={t('bookingConfirmation.title')} onBackPress={() => navigation.goBack()} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={[colors.status.success, '#047857']} style={styles.badge}>
-          <Ionicons name="checkmark-circle" size={64} color={colors.white} />
-          <Text style={styles.badgeTitle}>Buchung prüfen</Text>
-          <Text style={styles.badgeSubtitle}>Bitte alle Details bestätigen</Text>
-        </LinearGradient>
+        <View style={styles.badge}>
+          <Ionicons name="checkmark-circle-outline" size={40} color={d.line} />
+          <Text style={styles.badgeTitle}>{t('bookingConfirmation.checkTitle')}</Text>
+          <Text style={styles.badgeSubtitle}>{t('bookingConfirmation.checkSubtitle')}</Text>
+        </View>
 
-        <Card style={styles.card}>
-          <Row icon="business" label="Dienstleister" value={provider.name || 'Müller GmbH'} />
-          <Divider />
-          <Row icon="star" label="Bewertung" value={`${provider.rating || '4.9'} ⭐`} />
-        </Card>
+        <View style={styles.card}>
+          <Row d={d} icon="business-outline" label={t('bookingConfirmation.provider')} value={provider.name || 'Müller GmbH'} />
+          <Divider d={d} />
+          <Row d={d} icon="star-outline" label={t('bookingConfirmation.rating')} value={`${provider.rating || '4.9'}`} />
+        </View>
 
-        <Card style={styles.card}>
-          <Row icon="calendar" label="Datum" value={date} />
-          <Divider />
-          <Row icon="time" label="Uhrzeit" value={time} />
-          <Divider />
-          <Row icon="alert-circle" label="Dringlichkeit" value={isEmergency ? 'Notfall' : 'Normal'} valueStyle={{ color: isEmergency ? colors.status.error : colors.status.success, fontWeight: typography.fontWeight.semiBold }} />
-        </Card>
+        <View style={styles.card}>
+          <Row d={d} icon="calendar-outline" label={t('bookingConfirmation.date')} value={date} />
+          <Divider d={d} />
+          <Row d={d} icon="time-outline" label={t('bookingConfirmation.time')} value={time} />
+          <Divider d={d} />
+          <Row d={d} icon="alert-circle-outline" label={t('bookingConfirmation.urgencyLabel')} value={isEmergency ? t('bookingConfirmation.emergency') : t('bookingConfirmation.normal')} valueStyle={{ color: isEmergency ? d.danger : d.green, fontWeight: '700' }} />
+        </View>
 
-        <Card style={styles.card}>
-          <Text style={styles.cardTitle}>Kostenübersicht</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{t('bookingConfirmation.costOverview')}</Text>
           <View style={styles.priceRows}>
-            <PriceRow label="Grundgebühr" value={`€${basePrice}`} />
-            <PriceRow label="Service" value={`€${servicePrice}`} />
-            {isEmergency ? <PriceRow label="Notfall-Zuschlag" value={`€${emergencyFee}`} highlight /> : null}
+            <PriceRow d={d} label={t('bookingConfirmation.baseFee')} value={`€${basePrice}`} />
+            <PriceRow d={d} label={t('bookingConfirmation.service')} value={`€${servicePrice}`} />
+            {isEmergency ? <PriceRow d={d} label={t('bookingConfirmation.emergencyFee')} value={`€${emergencyFee}`} highlight /> : null}
           </View>
           <View style={styles.priceDivider} />
-          <View style={styles.totalRow}><Text style={styles.totalLabel}>Gesamtbetrag</Text><Text style={styles.totalValue}>€{total}</Text></View>
-        </Card>
+          <View style={styles.totalRow}><Text style={styles.totalLabel}>{t('bookingConfirmation.total')}</Text><Text style={styles.totalValue}>€{total}</Text></View>
+        </View>
 
         <View style={styles.infoBox}>
-          <Ionicons name="information-circle" size={20} color={colors.status.info} />
-          <Text style={styles.infoText}>Sie erhalten eine Bestätigung per E-Mail. Der Dienstleister meldet sich 30 Minuten vor dem Termin.</Text>
+          <Ionicons name="information-circle-outline" size={16} color={d.line} />
+          <Text style={styles.infoText}>{t('bookingConfirmation.infoText')}</Text>
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button variant="outline" onPress={() => navigation.goBack()} style={styles.backBtn}>Zurück</Button>
-        <Button onPress={handleConfirm} loading={loading} icon="checkmark" style={styles.confirmBtn}>Jetzt buchen</Button>
+        <Button variant="outline" onPress={() => navigation.goBack()} style={styles.backBtn}>{t('bookingConfirmation.back')}</Button>
+        <Button onPress={handleConfirm} loading={loading} icon="checkmark" style={styles.confirmBtn}>{t('bookingConfirmation.confirmButton')}</Button>
       </View>
     </View>
   );
 };
 
-const Row = ({ icon, label, value, valueStyle }) => (
-  <View style={rowStyles.row}>
-    <View style={rowStyles.left}><Ionicons name={icon} size={18} color={colors.accent.main} /><Text style={rowStyles.label}>{label}</Text></View>
-    <Text style={[rowStyles.value, valueStyle]}>{value}</Text>
-  </View>
-);
-const rowStyles = StyleSheet.create({
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.xs },
-  left: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  label: { fontSize: typography.fontSize.base, color: colors.gray[600] },
-  value: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.medium, color: colors.gray[900] },
+const Row = ({ d, icon, label, value, valueStyle }) => {
+  const s = createRowStyles(d);
+  return (
+    <View style={s.row}>
+      <View style={s.left}><Ionicons name={icon} size={15} color={d.line} /><Text style={s.label}>{label}</Text></View>
+      <Text style={[s.value, valueStyle]}>{value}</Text>
+    </View>
+  );
+};
+const createRowStyles = (d) => StyleSheet.create({
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
+  left: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  label: { fontSize: 13, color: d.textSoft },
+  value: { fontSize: 13, fontWeight: '600', color: d.text },
 });
 
-const Divider = () => <View style={{ height: 1, backgroundColor: colors.gray[100], marginVertical: 4 }} />;
+const Divider = ({ d }) => <View style={{ height: 1, backgroundColor: d.lineSoft, marginVertical: 2 }} />;
 
-const PriceRow = ({ label, value, highlight }) => (
-  <View style={priceStyles.row}><Text style={[priceStyles.label, highlight && priceStyles.highlight]}>{label}</Text><Text style={[priceStyles.value, highlight && priceStyles.highlight]}>{value}</Text></View>
-);
-const priceStyles = StyleSheet.create({
+const PriceRow = ({ d, label, value, highlight }) => {
+  const s = createPriceStyles(d);
+  return (
+    <View style={s.row}><Text style={[s.label, highlight && s.highlight]}>{label}</Text><Text style={[s.value, highlight && s.highlight]}>{value}</Text></View>
+  );
+};
+const createPriceStyles = (d) => StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-  label: { fontSize: typography.fontSize.base, color: colors.gray[600] },
-  value: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.medium, color: colors.gray[900] },
-  highlight: { color: colors.status.error },
+  label: { fontSize: 13, color: d.textSoft },
+  value: { fontSize: 13, fontWeight: '600', color: d.text, fontFamily: MONO },
+  highlight: { color: d.danger },
 });
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background.default },
-  scrollContent: { padding: spacing.xl, paddingBottom: 100 },
-  badge: { borderRadius: borderRadius.lg, padding: spacing.xl, alignItems: 'center', marginBottom: spacing.lg },
-  badgeTitle: { fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.white, marginTop: spacing.sm },
-  badgeSubtitle: { fontSize: typography.fontSize.base, color: colors.white, opacity: 0.9 },
-  card: { marginBottom: spacing.md, padding: spacing.md },
-  cardTitle: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semiBold, color: colors.gray[900], marginBottom: spacing.sm },
+const createStyles = (d) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: d.canvas },
+  scrollContent: { padding: 18, paddingBottom: 100 },
+  badge: { borderRadius: 14, borderWidth: 1, borderColor: d.lineSoft, backgroundColor: d.panel, padding: 20, alignItems: 'center', marginBottom: 16 },
+  badgeTitle: { fontSize: 18, fontWeight: '700', color: d.text, marginTop: 10 },
+  badgeSubtitle: { fontSize: 13, color: d.textSoft, marginTop: 2 },
+  card: { backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 12, marginBottom: 12, padding: 14 },
+  cardTitle: { fontSize: 13.5, fontWeight: '700', color: d.text, marginBottom: 8 },
   priceRows: { gap: 2 },
-  priceDivider: { height: 1, backgroundColor: colors.gray[200], marginVertical: spacing.sm },
+  priceDivider: { height: 1, backgroundColor: d.lineSoft, marginVertical: 8 },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  totalLabel: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semiBold, color: colors.gray[900] },
-  totalValue: { fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.accent.main },
-  infoBox: { flexDirection: 'row', backgroundColor: colors.status.info + '14', borderRadius: borderRadius.md, padding: spacing.md, gap: spacing.sm },
-  infoText: { flex: 1, fontSize: typography.fontSize.sm, color: colors.gray[700], lineHeight: 20 },
-  footer: { flexDirection: 'row', backgroundColor: colors.white, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, gap: spacing.sm, ...shadows.xl },
+  totalLabel: { fontSize: 15, fontWeight: '700', color: d.text },
+  totalValue: { fontSize: 20, fontWeight: '700', color: d.text, fontFamily: MONO },
+  infoBox: { flexDirection: 'row', backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 10, padding: 12, gap: 8 },
+  infoText: { flex: 1, fontSize: 12, color: d.textSoft, lineHeight: 18 },
+  footer: { flexDirection: 'row', backgroundColor: d.panel, borderTopWidth: 1, borderTopColor: d.lineSoft, paddingHorizontal: 18, paddingVertical: 14, gap: 10 },
   backBtn: { flex: 1 },
   confirmBtn: { flex: 2 },
 });

@@ -5,9 +5,10 @@
  */
 
 const MOCK_ADDRESS = {
-  street: 'Musterstraße 1',
+  street: 'Rüttenscheider Straße 142',
+  district: 'Rüttenscheid',
   city:   'Essen',
-  zip:    '45127',
+  zip:    '45131',
   country: 'Deutschland',
 };
 

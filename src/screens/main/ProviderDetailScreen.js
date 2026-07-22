@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Card, Button, Badge } from '../../components/common';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Button, Badge } from '../../components/common';
 import { useApp } from '../../context/AppContext';
-import { colors, typography, spacing, borderRadius, shadows } from '../../constants/theme';
+import { useLanguage } from '../../i18n';
+import { useTheme } from '../../constants/ThemeContext';
 
-const TABS = ['Über uns', 'Bewertungen', 'Leistungen'];
+const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
+
 const REVIEWS = [
   { id: '1', author: 'Anna M.',  rating: 5, date: '05.05.2025', comment: 'Sehr professionell und pünktlich. Kann ich nur empfehlen!' },
   { id: '2', author: 'Klaus B.', rating: 4, date: '01.05.2025', comment: 'Gute Arbeit, schnell und sauber.' },
@@ -15,34 +17,50 @@ const REVIEWS = [
 
 const ProviderDetailScreen = ({ navigation, route }) => {
   const { isFavorite, addFavorite, removeFavorite } = useApp();
+  const { t } = useLanguage();
+  const { colors } = useTheme();
+  const d = colors.dispatch;
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(d);
+
   const provider = route.params?.provider || {};
   const [activeTab, setActiveTab] = useState(0);
   const fav = isFavorite(provider.id);
   const toggleFav = () => (fav ? removeFavorite(provider.id) : addFavorite(provider.id));
   const avgRating = REVIEWS.reduce((s, r) => s + r.rating, 0) / REVIEWS.length;
 
+  const TABS = [t('providerDetail.tabAbout'), t('providerDetail.tabReviews'), t('providerDetail.tabServices')];
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.heroWrap}>
-          <LinearGradient colors={[colors.services.plumbing, '#1E40AF']} style={styles.hero}><Ionicons name="business" size={80} color={colors.white} /></LinearGradient>
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={22} color={colors.white} /></TouchableOpacity>
-          <TouchableOpacity style={[styles.backBtn, styles.favBtn]} onPress={toggleFav}><Ionicons name={fav ? 'heart' : 'heart-outline'} size={22} color={fav ? '#F87171' : colors.white} /></TouchableOpacity>
+          <View style={styles.hero}>
+            <Ionicons name="business-outline" size={56} color={d.line} />
+          </View>
+          <TouchableOpacity style={[styles.backBtn, { top: insets.top + 10 }]} onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={16} color={d.text} /></TouchableOpacity>
+          <TouchableOpacity style={[styles.backBtn, styles.favBtn, { top: insets.top + 10 }]} onPress={toggleFav}><Ionicons name={fav ? 'heart' : 'heart-outline'} size={16} color={fav ? d.danger : d.text} /></TouchableOpacity>
         </View>
 
         <View style={styles.infoCard}>
           <Text style={styles.providerName}>{provider.name || 'Müller GmbH'}</Text>
           <View style={styles.metaRow}>
-            <Ionicons name="star" size={16} color={colors.accent.main} />
+            <Ionicons name="star" size={14} color={d.amber} />
             <Text style={styles.rating}>{provider.rating || '4.9'}</Text>
-            <Text style={styles.reviews}>({provider.reviews || 234} Bewertungen)</Text>
-            {provider.verified ? <Badge label="Verifiziert" color={colors.status.success} /> : null}
+            <Text style={styles.reviews}>({provider.reviews || 234} {t('providerDetail.reviews')})</Text>
+            {provider.verified ? <Badge label={t('providerDetail.verified')} color={d.green} /> : null}
           </View>
-          <Text style={styles.distance}>{provider.distance || '1.2 km'} entfernt</Text>
+          <Text style={styles.distance}>{provider.distance || '1.2 km'}</Text>
 
           <View style={styles.statsRow}>
-            {[{ val: provider.jobs || 450, lbl: 'Aufträge' }, { val: provider.responseTime || '< 10 Min', lbl: 'Antwortzeit' }, { val: '98%', lbl: 'Erfolgsrate' }].map((s, i) => (
-              <View key={i} style={styles.statBlock}><Text style={styles.statVal}>{s.val}</Text><Text style={styles.statLbl}>{s.lbl}</Text></View>
+            {[
+              { val: provider.jobs || 450, lbl: t('providerDetail.jobsCompleted') },
+              { val: provider.responseTime || '<10min', lbl: t('providerDetail.responseTime') },
+              { val: '98%', lbl: t('providerDetail.successRate') },
+            ].map((s, i) => (
+              <View key={i} style={styles.statBlock}>
+                <Text style={styles.statVal}>{s.val}</Text><Text style={styles.statLbl}>{s.lbl.toUpperCase()}</Text>
+              </View>
             ))}
           </View>
         </View>
@@ -58,21 +76,21 @@ const ProviderDetailScreen = ({ navigation, route }) => {
         <View style={styles.tabContent}>
           {activeTab === 0 ? (
             <View>
-              <Text style={styles.descText}>Professionelle Sanitär- und Heizungsinstallation seit über 20 Jahren. Wir bieten schnellen und zuverlässigen Service für alle Ihre Bedürfnisse.</Text>
-              <Card style={styles.infoSection}>
-                <Text style={styles.infoSectionTitle}>Öffnungszeiten</Text>
-                {[['Mo–Fr', '08:00–18:00'], ['Sa', '09:00–14:00'], ['So', 'Notdienst']].map(([k, v]) => (
+              <Text style={styles.descText}>{t('providerDetail.aboutText')}</Text>
+              <View style={styles.infoSection}>
+                <Text style={styles.infoSectionTitle}>{t('providerDetail.openingHours')}</Text>
+                {[[t('providerDetail.weekday'), '08:00-18:00'], [t('providerDetail.saturday'), '09:00-14:00'], [t('providerDetail.sunday'), t('providerDetail.emergencyOnly')]].map(([k, v]) => (
                   <View key={k} style={styles.infoRow}><Text style={styles.infoKey}>{k}</Text><Text style={styles.infoVal}>{v}</Text></View>
                 ))}
-              </Card>
-              <Card style={styles.infoSection}>
-                <Text style={styles.infoSectionTitle}>Zahlungsmethoden</Text>
+              </View>
+              <View style={styles.infoSection}>
+                <Text style={styles.infoSectionTitle}>{t('providerDetail.paymentMethods')}</Text>
                 <View style={styles.paymentRow}>
-                  {[{ icon: 'card', label: 'Kreditkarte' }, { icon: 'cash', label: 'Bar' }, { icon: 'phone-portrait', label: 'SEPA' }].map((p) => (
-                    <View key={p.label} style={styles.paymentChip}><Ionicons name={p.icon} size={18} color={colors.gray[700]} /><Text style={styles.paymentLabel}>{p.label}</Text></View>
+                  {[{ icon: 'card-outline', label: t('providerDetail.creditCard') }, { icon: 'cash-outline', label: t('providerDetail.cash') }, { icon: 'phone-portrait-outline', label: t('providerDetail.sepa') }].map((p) => (
+                    <View key={p.label} style={styles.paymentChip}><Ionicons name={p.icon} size={14} color={d.line} /><Text style={styles.paymentLabel}>{p.label}</Text></View>
                   ))}
                 </View>
-              </Card>
+              </View>
             </View>
           ) : null}
 
@@ -81,27 +99,27 @@ const ProviderDetailScreen = ({ navigation, route }) => {
               <View style={styles.avgRow}>
                 <Text style={styles.avgNum}>{avgRating.toFixed(1)}</Text>
                 <View>
-                  <View style={styles.starsRow}>{[1,2,3,4,5].map((s) => <Ionicons key={s} name={s <= Math.round(avgRating) ? 'star' : 'star-outline'} size={18} color={colors.accent.main} />)}</View>
-                  <Text style={styles.totalReviews}>{REVIEWS.length} Bewertungen</Text>
+                  <View style={styles.starsRow}>{[1,2,3,4,5].map((s) => <Ionicons key={s} name={s <= Math.round(avgRating) ? 'star' : 'star-outline'} size={15} color={d.amber} />)}</View>
+                  <Text style={styles.totalReviews}>{REVIEWS.length} {t('providerDetail.reviews')}</Text>
                 </View>
               </View>
               {REVIEWS.map((r) => (
-                <Card key={r.id} style={styles.reviewCard}>
+                <View key={r.id} style={styles.reviewCard}>
                   <View style={styles.reviewHeader}>
                     <View style={styles.reviewAvatar}><Text style={styles.reviewInitial}>{r.author[0]}</Text></View>
                     <View style={styles.reviewMeta}><Text style={styles.reviewAuthor}>{r.author}</Text><Text style={styles.reviewDate}>{r.date}</Text></View>
-                    <View style={styles.reviewStars}>{[1,2,3,4,5].map((s) => <Ionicons key={s} name={s <= r.rating ? 'star' : 'star-outline'} size={13} color={colors.accent.main} />)}</View>
+                    <View style={styles.reviewStars}>{[1,2,3,4,5].map((s) => <Ionicons key={s} name={s <= r.rating ? 'star' : 'star-outline'} size={11} color={d.amber} />)}</View>
                   </View>
                   <Text style={styles.reviewComment}>{r.comment}</Text>
-                </Card>
+                </View>
               ))}
             </View>
           ) : null}
 
           {activeTab === 2 ? (
             <View>
-              {['Rohrverstopfung', 'Wasserhahn Installation', 'Heizungsreparatur', 'Notfall-Service 24/7', 'Sanitär-Wartung', 'Boiler Service'].map((s) => (
-                <View key={s} style={styles.serviceItem}><Ionicons name="checkmark-circle" size={20} color={colors.status.success} /><Text style={styles.serviceItemText}>{s}</Text></View>
+              {t('providerDetail.serviceList').map((s) => (
+                <View key={s} style={styles.serviceItem}><Ionicons name="checkmark-circle" size={17} color={d.green} /><Text style={styles.serviceItemText}>{s}</Text></View>
               ))}
             </View>
           ) : null}
@@ -111,62 +129,62 @@ const ProviderDetailScreen = ({ navigation, route }) => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <View><Text style={styles.priceFrom}>Ab</Text><Text style={styles.price}>€80/Std</Text></View>
-        <Button onPress={() => navigation.navigate('Booking', { provider })} icon="calendar" style={styles.bookBtn}>Jetzt buchen</Button>
+        <View><Text style={styles.priceFrom}>{t('providerDetail.from')}</Text><Text style={styles.price}>€80/h</Text></View>
+        <Button onPress={() => navigation.navigate('Booking', { provider })} icon="calendar-outline" style={styles.bookBtn}>{t('providerDetail.bookNow')}</Button>
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+const createStyles = (d) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: d.canvas },
   heroWrap: { position: 'relative' },
-  hero: { height: 280, alignItems: 'center', justifyContent: 'center' },
-  backBtn: { position: 'absolute', top: 60, left: spacing.xl, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
-  favBtn: { left: undefined, right: spacing.xl },
-  infoCard: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.md, backgroundColor: colors.white },
-  providerName: { fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.gray[900], marginBottom: spacing.xs },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.xs, flexWrap: 'wrap' },
-  rating: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semiBold, color: colors.gray[900] },
-  reviews: { fontSize: typography.fontSize.sm, color: colors.gray[500] },
-  distance: { fontSize: typography.fontSize.sm, color: colors.gray[500], marginBottom: spacing.md },
-  statsRow: { flexDirection: 'row', gap: spacing.sm },
-  statBlock: { flex: 1, backgroundColor: colors.gray[50], borderRadius: borderRadius.md, padding: spacing.sm, alignItems: 'center' },
-  statVal: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, color: colors.gray[900] },
-  statLbl: { fontSize: typography.fontSize.xs, color: colors.gray[500] },
-  tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.gray[200] },
-  tab: { flex: 1, paddingVertical: spacing.sm, alignItems: 'center' },
-  tabActive: { borderBottomWidth: 2, borderBottomColor: colors.accent.main },
-  tabText: { fontSize: typography.fontSize.base, color: colors.gray[500] },
-  tabTextActive: { fontWeight: typography.fontWeight.semiBold, color: colors.accent.main },
-  tabContent: { padding: spacing.xl },
-  descText: { fontSize: typography.fontSize.base, color: colors.gray[700], lineHeight: 26, marginBottom: spacing.lg },
-  infoSection: { marginBottom: spacing.md },
-  infoSectionTitle: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semiBold, color: colors.gray[900], marginBottom: spacing.sm },
+  hero: { height: 220, alignItems: 'center', justifyContent: 'center', backgroundColor: d.panel, borderBottomWidth: 1, borderBottomColor: d.lineSoft },
+  backBtn: { position: 'absolute', top: 56, left: 18, width: 32, height: 32, borderRadius: 8, backgroundColor: d.canvas, borderWidth: 1, borderColor: d.lineSoft, alignItems: 'center', justifyContent: 'center' },
+  favBtn: { left: undefined, right: 18 },
+  infoCard: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 12 },
+  providerName: { fontSize: 21, fontWeight: '700', color: d.text, marginBottom: 4 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' },
+  rating: { fontSize: 14, fontWeight: '700', color: d.text },
+  reviews: { fontSize: 12.5, color: d.textSoft },
+  distance: { fontSize: 12.5, color: d.textSoft, marginBottom: 14 },
+  statsRow: { flexDirection: 'row', gap: 8 },
+  statBlock: { flex: 1, borderRadius: 10, padding: 10, alignItems: 'center', backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft },
+  statVal: { fontSize: 14, fontWeight: '700', color: d.text, fontFamily: MONO },
+  statLbl: { fontSize: 9, color: d.textSoft, marginTop: 2 },
+  tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: d.lineSoft },
+  tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
+  tabActive: { borderBottomWidth: 2, borderBottomColor: d.line },
+  tabText: { fontSize: 13, color: d.textSoft },
+  tabTextActive: { fontWeight: '700', color: d.line },
+  tabContent: { padding: 18 },
+  descText: { fontSize: 13.5, color: d.textSoft, lineHeight: 22, marginBottom: 18 },
+  infoSection: { marginBottom: 14, backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 10, padding: 12 },
+  infoSectionTitle: { fontSize: 13, fontWeight: '700', color: d.text, marginBottom: 8 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-  infoKey: { fontSize: typography.fontSize.base, color: colors.gray[600] },
-  infoVal: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.medium, color: colors.gray[900] },
-  paymentRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  paymentChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.gray[100], borderRadius: borderRadius.sm, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, gap: 4 },
-  paymentLabel: { fontSize: typography.fontSize.sm, color: colors.gray[700] },
-  avgRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg },
-  avgNum: { fontSize: 56, fontWeight: typography.fontWeight.bold, color: colors.gray[900] },
+  infoKey: { fontSize: 12.5, color: d.textSoft },
+  infoVal: { fontSize: 12.5, fontWeight: '600', color: d.text },
+  paymentRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  paymentChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: d.canvas, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5, gap: 4 },
+  paymentLabel: { fontSize: 11.5, color: d.text },
+  avgRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 18 },
+  avgNum: { fontSize: 44, fontWeight: '700', color: d.text, fontFamily: MONO },
   starsRow: { flexDirection: 'row', gap: 2, marginBottom: 4 },
-  totalReviews: { fontSize: typography.fontSize.sm, color: colors.gray[500] },
-  reviewCard: { marginBottom: spacing.sm },
-  reviewHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
-  reviewAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.accent.main, alignItems: 'center', justifyContent: 'center', marginRight: spacing.sm },
-  reviewInitial: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, color: colors.white },
+  totalReviews: { fontSize: 12, color: d.textSoft },
+  reviewCard: { backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 10, padding: 12, marginBottom: 10 },
+  reviewHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  reviewAvatar: { width: 32, height: 32, borderRadius: 8, borderWidth: 1, borderColor: d.lineSoft, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  reviewInitial: { fontSize: 14, fontWeight: '700', color: d.line },
   reviewMeta: { flex: 1 },
-  reviewAuthor: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.medium, color: colors.gray[900] },
-  reviewDate: { fontSize: typography.fontSize.xs, color: colors.gray[500] },
+  reviewAuthor: { fontSize: 13, fontWeight: '600', color: d.text },
+  reviewDate: { fontSize: 10.5, color: d.textSoft },
   reviewStars: { flexDirection: 'row', gap: 2 },
-  reviewComment: { fontSize: typography.fontSize.sm, color: colors.gray[700], lineHeight: 21 },
-  serviceItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.gray[100], gap: spacing.sm },
-  serviceItemText: { fontSize: typography.fontSize.base, color: colors.gray[900] },
-  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.white, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, gap: spacing.md, ...shadows.xl },
-  priceFrom: { fontSize: typography.fontSize.sm, color: colors.gray[500] },
-  price: { fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.gray[900] },
+  reviewComment: { fontSize: 12.5, color: d.textSoft, lineHeight: 19 },
+  serviceItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: d.lineSoft, gap: 10 },
+  serviceItemText: { fontSize: 13, color: d.text },
+  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', backgroundColor: d.panel, borderTopWidth: 1, borderTopColor: d.lineSoft, paddingHorizontal: 18, paddingVertical: 14, gap: 14 },
+  priceFrom: { fontSize: 11, color: d.textSoft },
+  price: { fontSize: 20, fontWeight: '700', color: d.text, fontFamily: MONO },
   bookBtn: { flex: 1 },
 });
 
