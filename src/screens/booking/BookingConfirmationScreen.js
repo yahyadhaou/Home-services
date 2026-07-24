@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Header } from '../../components/common';
+import { SERVICE_FEE_RATE } from '../../constants/pricing';
 import { useBookings } from '../../hooks';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
@@ -14,17 +15,17 @@ const BookingConfirmationScreen = ({ navigation, route }) => {
   const { colors } = useTheme();
   const d = colors.dispatch;
   const styles = createStyles(d);
-  const { provider, date, time, urgency, frequency, estimatedTotal } = route.params;
-  const isEmergency   = urgency === 'emergency';
-  const basePrice     = 80;
-  const servicePrice  = 40;
-  const emergencyFee  = isEmergency ? 30 : 0;
-  const total         = estimatedTotal ?? (basePrice + servicePrice + emergencyFee);
+  const { provider, date, time, urgency, frequency, subtotal, fee, estimatedTotal, service, hideFrequency } = route.params;
+  const isEmergency = urgency === 'emergency';
+  // subtotal/fee always arrive from BookingScreen now — this screen never
+  // recomputes its own price, so what the customer confirmed here is
+  // guaranteed to be the exact number they saw on the previous screen.
+  const total = estimatedTotal;
 
   const handleConfirm = async () => {
     const result = await create({
-      service:  t('home.plumber'),
-      provider: provider.name || 'Müller GmbH',
+      service:  service || t('home.plumber'),
+      provider: provider.name || 'Rüttenscheider Sanitärtechnik GmbH',
       date, time, urgency, total, frequency,
     });
     if (result.success) navigation.navigate('BookingDetail', { booking: result.booking });
@@ -42,7 +43,7 @@ const BookingConfirmationScreen = ({ navigation, route }) => {
         </View>
 
         <View style={styles.card}>
-          <Row d={d} icon="business-outline" label={t('bookingConfirmation.provider')} value={provider.name || 'Müller GmbH'} />
+          <Row d={d} icon="business-outline" label={t('bookingConfirmation.provider')} value={provider.name || 'Rüttenscheider Sanitärtechnik GmbH'} />
           <Divider d={d} />
           <Row d={d} icon="star-outline" label={t('bookingConfirmation.rating')} value={`${provider.rating || '4.9'}`} />
         </View>
@@ -51,19 +52,23 @@ const BookingConfirmationScreen = ({ navigation, route }) => {
           <Row d={d} icon="calendar-outline" label={t('bookingConfirmation.date')} value={date} />
           <Divider d={d} />
           <Row d={d} icon="time-outline" label={t('bookingConfirmation.time')} value={time} />
-          <Divider d={d} />
-          <Row d={d} icon="alert-circle-outline" label={t('bookingConfirmation.urgencyLabel')} value={isEmergency ? t('bookingConfirmation.emergency') : t('bookingConfirmation.normal')} valueStyle={{ color: isEmergency ? d.danger : d.green, fontWeight: '700' }} />
+          {!hideFrequency ? (
+            <>
+              <Divider d={d} />
+              <Row d={d} icon="alert-circle-outline" label={t('bookingConfirmation.urgencyLabel')} value={isEmergency ? t('bookingConfirmation.emergency') : t('bookingConfirmation.normal')} valueStyle={{ color: isEmergency ? d.danger : d.green, fontWeight: '700' }} />
+            </>
+          ) : null}
         </View>
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('bookingConfirmation.costOverview')}</Text>
           <View style={styles.priceRows}>
-            <PriceRow d={d} label={t('bookingConfirmation.baseFee')} value={`€${basePrice}`} />
-            <PriceRow d={d} label={t('bookingConfirmation.service')} value={`€${servicePrice}`} />
-            {isEmergency ? <PriceRow d={d} label={t('bookingConfirmation.emergencyFee')} value={`€${emergencyFee}`} highlight /> : null}
+            <PriceRow d={d} label={t('booking.servicePrice')} value={`€${subtotal}`} />
+            <PriceRow d={d} label={t('booking.serviceFee', { rate: Math.round(SERVICE_FEE_RATE * 100) })} value={`€${fee}`} />
           </View>
           <View style={styles.priceDivider} />
           <View style={styles.totalRow}><Text style={styles.totalLabel}>{t('bookingConfirmation.total')}</Text><Text style={styles.totalValue}>€{total}</Text></View>
+          <Text style={styles.vatNote}>{t('booking.vatNote')}</Text>
         </View>
 
         <View style={styles.infoBox}>
@@ -124,6 +129,7 @@ const createStyles = (d) => StyleSheet.create({
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   totalLabel: { fontSize: 15, fontWeight: '700', color: d.text },
   totalValue: { fontSize: 20, fontWeight: '700', color: d.text, fontFamily: MONO },
+  vatNote: { fontSize: 10.5, color: d.textSoft, marginTop: 8 },
   infoBox: { flexDirection: 'row', backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 10, padding: 12, gap: 8 },
   infoText: { flex: 1, fontSize: 12, color: d.textSoft, lineHeight: 18 },
   footer: { flexDirection: 'row', backgroundColor: d.panel, borderTopWidth: 1, borderTopColor: d.lineSoft, paddingHorizontal: 18, paddingVertical: 14, gap: 10 },

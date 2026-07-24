@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
 
@@ -8,8 +9,9 @@ const ChatScreen = ({ navigation, route }) => {
   const { t } = useLanguage();
   const { colors } = useTheme();
   const d = colors.dispatch;
+  const insets = useSafeAreaInsets();
   const styles = createStyles(d);
-  const provider = route.params?.provider || { name: 'Müller GmbH' };
+  const provider = route.params?.provider || { name: 'Rüttenscheider Sanitärtechnik GmbH' };
 
   const INITIAL_MESSAGES = [
     { id: '1', text: t('chat.sampleMsg1'), sender: 'provider', time: '09:00' },
@@ -48,11 +50,14 @@ const ChatScreen = ({ navigation, route }) => {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={16} color={d.text} />
+        </TouchableOpacity>
         <View style={styles.providerInfo}>
           <View style={styles.headerAvatar}><Text style={styles.headerAvatarText}>{provider.name.charAt(0)}</Text></View>
           <View>
-            <Text style={styles.providerName}>{provider.name}</Text>
+            <Text style={styles.providerName} numberOfLines={1}>{provider.name}</Text>
             <View style={styles.onlineRow}><View style={styles.onlineDot} /><Text style={styles.onlineText}>{t('chat.online').toUpperCase()}</Text></View>
           </View>
         </View>
@@ -83,7 +88,8 @@ const ChatScreen = ({ navigation, route }) => {
 
 const createStyles = (d) => StyleSheet.create({
   container: { flex: 1, backgroundColor: d.canvas },
-  header: { flexDirection: 'row', alignItems: 'center', paddingTop: 56, paddingBottom: 12, paddingHorizontal: 18, backgroundColor: d.canvas, borderBottomWidth: 1, borderBottomColor: d.lineSoft },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 12, paddingHorizontal: 18, backgroundColor: d.canvas, borderBottomWidth: 1, borderBottomColor: d.lineSoft },
+  backBtn: { width: 30, height: 30, borderRadius: 8, borderWidth: 1, borderColor: d.lineSoft, alignItems: 'center', justifyContent: 'center' },
   providerInfo: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
   headerAvatar: { width: 38, height: 38, borderRadius: 10, borderWidth: 1, borderColor: d.lineSoft, backgroundColor: d.panel, alignItems: 'center', justifyContent: 'center' },
   headerAvatarText: { fontSize: 15, fontWeight: '700', color: d.line },

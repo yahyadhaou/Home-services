@@ -19,8 +19,11 @@ import ServiceCategoryScreen from '../screens/main/ServiceCategoryScreen';
 import ProviderListScreen    from '../screens/main/ProviderListScreen';
 import ProviderDetailScreen  from '../screens/main/ProviderDetailScreen';
 import SearchScreen          from '../screens/main/SearchScreen';
+import NearbyScreen          from '../screens/main/NearbyScreen';
+import RelocationScreen      from '../screens/main/RelocationScreen';
 import EmergencyBookingScreen from '../screens/main/EmergencyBookingScreen';
 import ChatScreen            from '../screens/main/ChatScreen';
+import ChatListScreen        from '../screens/main/ChatListScreen';
 import LiveTrackingScreen     from '../screens/main/LiveTrackingScreen';
 
 // Booking
@@ -49,9 +52,9 @@ const Tab = createBottomTabNavigator();
 const MainTabs = () => (
   <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <TechnicalTabBar {...props} />}>
     <Tab.Screen name="Home" component={HomeScreen} />
-    <Tab.Screen name="Search" component={SearchScreen} />
+    <Tab.Screen name="Nearby" component={NearbyScreen} />
     <Tab.Screen name="MyBookings" component={MyBookingsScreen} />
-    <Tab.Screen name="Chat" component={ChatScreen} />
+    <Tab.Screen name="Relocation" component={RelocationScreen} />
     <Tab.Screen name="Profile" component={ProfileScreen} />
   </Tab.Navigator>
 );
@@ -78,6 +81,9 @@ const AppNavigator = () => {
         <Stack.Screen name="ServiceCategory"     component={ServiceCategoryScreen} />
         <Stack.Screen name="ProviderList"        component={ProviderListScreen} />
         <Stack.Screen name="ProviderDetail"      component={ProviderDetailScreen} />
+        <Stack.Screen name="Search"              component={SearchScreen} />
+        <Stack.Screen name="ChatThread"          component={ChatScreen} />
+        <Stack.Screen name="ChatList"            component={ChatListScreen} />
         <Stack.Screen name="EmergencyBooking"    component={EmergencyBookingScreen} />
         <Stack.Screen name="LiveTracking"        component={LiveTrackingScreen} />
         <Stack.Screen name="Booking"             component={BookingScreen} />

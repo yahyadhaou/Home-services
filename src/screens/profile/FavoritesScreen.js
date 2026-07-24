@@ -7,10 +7,10 @@ import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
 
 const ALL_PROVIDERS = [
-  { id: '1', name: 'Müller GmbH',       rating: 4.9, reviews: 234, category: 'Klempner',  distance: '1.2 km', price: '€€'  },
-  { id: '2', name: 'Schmidt Sanitär',   rating: 4.7, reviews: 189, category: 'Klempner',  distance: '2.5 km', price: '€€€' },
-  { id: '3', name: 'Bauer Haustechnik', rating: 4.8, reviews: 156, category: 'Heizung',   distance: '3.1 km', price: '€€'  },
-  { id: '4', name: 'Clean Pro',         rating: 4.9, reviews: 312, category: 'Reinigung', distance: '0.8 km', price: '€€'  },
+  { id: '1', name: 'Rüttenscheider Sanitärtechnik GmbH', providerType: 'company', rating: 4.9, reviews: 234, category: 'Klempner',   distance: '1.2 km', hourlyRate: 68 },
+  { id: '3', name: 'ElektroMeister Krause GmbH',          providerType: 'company', rating: 4.8, reviews: 156, category: 'Elektriker', distance: '2.8 km', hourlyRate: 72 },
+  { id: '7', name: 'Wärmetechnik Ruhr GmbH',              providerType: 'company', rating: 4.7, reviews: 178, category: 'Heizung',    distance: '4.6 km', hourlyRate: 75 },
+  { id: '5', name: 'Blitzblank Gebäudereinigung GmbH',    providerType: 'company', rating: 4.9, reviews: 312, category: 'Reinigung',  distance: '3.4 km', hourlyRate: 35 },
 ];
 
 const FavoritesScreen = ({ navigation }) => {
@@ -32,7 +32,7 @@ const FavoritesScreen = ({ navigation }) => {
             <View style={styles.metaRow}>
               <Ionicons name="star" size={12} color={d.amber} /><Text style={styles.rating}>{item.rating}</Text><Text style={styles.reviews}>({item.reviews})</Text>
               <View style={styles.dot} /><Text style={styles.distance}>{item.distance}</Text>
-              <View style={styles.dot} /><Text style={styles.price}>{item.price}</Text>
+              <View style={styles.dot} /><Text style={styles.price}>€{item.hourlyRate}/h</Text>
             </View>
           </View>
           <TouchableOpacity onPress={() => removeFavorite(item.id)} style={styles.heartBtn}><Ionicons name="heart" size={19} color={d.danger} /></TouchableOpacity>

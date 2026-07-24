@@ -44,11 +44,11 @@ const BookingDetailScreen = ({ navigation, route }) => {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('bookingDetail.detailsTitle')}</Text>
-          <DetailRow d={d} icon="business-outline"  label={t('bookingDetail.provider')} value={booking.provider || 'Müller GmbH'} />
+          <DetailRow d={d} icon="business-outline"  label={t('bookingDetail.provider')} value={booking.provider || 'Rüttenscheider Sanitärtechnik GmbH'} />
           <DetailRow d={d} icon="construct-outline" label={t('bookingDetail.service')}  value={booking.service  || 'Klempner'} />
-          <DetailRow d={d} icon="calendar-outline"  label={t('bookingDetail.date')}     value={booking.date     || '15.05.2025'} />
+          <DetailRow d={d} icon="calendar-outline"  label={t('bookingDetail.date')}     value={booking.date     || '15.05.2026'} />
           <DetailRow d={d} icon="time-outline"      label={t('bookingDetail.time')}     value={booking.time     || '14:00'} last />
-          <DetailRow d={d} icon="location-outline"  label={t('bookingDetail.address')}  value="Musterstraße 1, 45127 Essen" last />
+          <DetailRow d={d} icon="location-outline"  label={t('bookingDetail.address')}  value="Rüttenscheider Straße 142, 45131 Essen" last />
         </View>
 
         <View style={styles.card}>
@@ -60,7 +60,7 @@ const BookingDetailScreen = ({ navigation, route }) => {
         {(booking.status === 'upcoming' || booking.status === 'confirmed' || booking.status === 'pending') ? (
           <View style={styles.actions}>
             <Button onPress={() => navigation.navigate('LiveTracking', { provider: { name: booking.provider } })} icon="navigate-outline">{t('bookingDetail.trackLive')}</Button>
-            <Button onPress={() => navigation.navigate('MainTabs', { screen: 'Chat', params: { provider: { name: booking.provider } } })} variant="outline" icon="chatbubble-outline">{t('bookingDetail.sendMessage')}</Button>
+            <Button onPress={() => navigation.navigate('ChatThread', { provider: { name: booking.provider } })} variant="outline" icon="chatbubble-outline">{t('bookingDetail.sendMessage')}</Button>
             <Button onPress={handleCancel} variant="ghost" style={styles.cancelBtn}>{t('bookingDetail.cancelBooking')}</Button>
           </View>
         ) : null}

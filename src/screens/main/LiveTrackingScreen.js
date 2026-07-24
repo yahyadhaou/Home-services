@@ -1,14 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing, Linking, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
 
 const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
-const CURRENT_STEP = 1; // 0-indexed into STEPS — mock "en route" state
+const CURRENT_STEP = 2; // 0-indexed into STEPS — mock "en route" state (0=pending, 1=matched, 2=enroute...)
 const PROGRESS = 0.62;
 
 const STEPS = [
+  { key: 'pending', icon: 'time-outline' },
   { key: 'matched', icon: 'checkmark-circle-outline' },
   { key: 'enroute', icon: 'navigate-outline' },
   { key: 'arriving', icon: 'location-outline' },
@@ -20,7 +22,9 @@ const LiveTrackingScreen = ({ navigation, route }) => {
   const { t } = useLanguage();
   const { colors } = useTheme();
   const d = colors.dispatch;
-  const provider = route?.params?.provider || { name: 'Müller GmbH' };
+  const insets = useSafeAreaInsets();
+  const provider = route?.params?.provider || { name: 'Rüttenscheider Sanitärtechnik GmbH', district: 'Rüttenscheid' };
+  const isPending = CURRENT_STEP === 0;
 
   const progress = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -28,6 +32,17 @@ const LiveTrackingScreen = ({ navigation, route }) => {
   }, [progress]);
   const widthPct = progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
   const leftPct = progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '96%'] });
+
+  const pulse = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(Animated.sequence([
+      Animated.timing(pulse, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      Animated.timing(pulse, { toValue: 0, duration: 900, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+    ]));
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+  const pulseOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] });
 
   const call = () => Linking.openURL('tel:080012345').catch(() => {});
   const cancelJob = () => {
@@ -39,7 +54,7 @@ const LiveTrackingScreen = ({ navigation, route }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: d.canvas }]}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 12 }]} showsVerticalScrollIndicator={false}>
         <View style={styles.head}>
           <TouchableOpacity style={[styles.back, { borderColor: d.lineSoft }]} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={16} color={d.text} />
@@ -50,26 +65,42 @@ const LiveTrackingScreen = ({ navigation, route }) => {
           </View>
         </View>
 
-        <View style={[styles.etaCard, { backgroundColor: d.panel, borderColor: d.lineSoft }]}>
-          <Text style={[styles.etaLbl, { color: d.textSoft }]}>{t('liveTracking.etaLabel').toUpperCase()}</Text>
-          <Text style={[styles.etaBig, { color: d.amber }]}>8 MIN</Text>
-
-          <View style={styles.routeRow}>
-            <Ionicons name="business-outline" size={14} color={d.line} />
-            <View style={[styles.track, { backgroundColor: d.lineSoft }]}>
-              <Animated.View style={[styles.trackFill, { width: widthPct, backgroundColor: d.line }]} />
-              <Animated.View style={[styles.marker, { left: leftPct, backgroundColor: d.amber }]} />
-            </View>
-            <Ionicons name="home-outline" size={14} color={d.line} />
+        {isPending ? (
+          <View style={[styles.etaCard, { backgroundColor: d.dangerSoft, borderColor: d.amber }]}>
+            <Animated.View style={{ opacity: pulseOpacity }}>
+              <Ionicons name="time-outline" size={28} color={d.amber} />
+            </Animated.View>
+            <Text style={[styles.pendingTitle, { color: d.text }]}>{t('liveTracking.waitingTitle')}</Text>
+            <Text style={[styles.pendingSub, { color: d.textSoft }]}>{t('liveTracking.waitingSub', { name: provider.name })}</Text>
           </View>
-        </View>
+        ) : (
+          <View style={[styles.etaCard, { backgroundColor: d.panel, borderColor: d.lineSoft }]}>
+            <Text style={[styles.etaLbl, { color: d.textSoft }]}>{t('liveTracking.etaLabel').toUpperCase()}</Text>
+            <Text style={[styles.etaBig, { color: d.amber }]}>8 MIN</Text>
+
+            <View style={styles.routeRow}>
+              <View style={styles.routeEnd}>
+                <Ionicons name="business-outline" size={14} color={d.line} />
+                <Text style={[styles.routeLabel, { color: d.textSoft }]}>{provider.district || 'Rüttenscheid'}</Text>
+              </View>
+              <View style={[styles.track, { backgroundColor: d.lineSoft }]}>
+                <Animated.View style={[styles.trackFill, { width: widthPct, backgroundColor: d.line }]} />
+                <Animated.View style={[styles.marker, { left: leftPct, backgroundColor: d.amber }]} />
+              </View>
+              <View style={styles.routeEnd}>
+                <Ionicons name="home-outline" size={14} color={d.line} />
+                <Text style={[styles.routeLabel, { color: d.textSoft }]}>{t('liveTracking.you')}</Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         <View style={[styles.providerCard, { backgroundColor: d.panel, borderColor: d.lineSoft }]}>
           <View style={[styles.avatar, { borderColor: d.lineSoft }]}>
-            <Text style={[styles.avatarText, { color: d.line }]}>{provider.name?.[0] || 'M'}</Text>
+            <Text style={[styles.avatarText, { color: d.line }]}>{provider.name?.[0] || 'R'}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.provName, { color: d.text }]}>{provider.name}</Text>
+            <Text style={[styles.provName, { color: d.text }]} numberOfLines={1}>{provider.name}</Text>
             <View style={styles.ratingRow}>
               <Ionicons name="star" size={12} color={d.amber} />
               <Text style={[styles.ratingText, { color: d.textSoft }]}>4.9 · {t('liveTracking.plumber')}</Text>
@@ -78,7 +109,7 @@ const LiveTrackingScreen = ({ navigation, route }) => {
           <TouchableOpacity style={[styles.roundBtn, { borderColor: d.lineSoft }]} onPress={call}>
             <Ionicons name="call-outline" size={16} color={d.line} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.roundBtn, { borderColor: d.lineSoft }]} onPress={() => navigation.navigate('MainTabs', { screen: 'Chat', params: { provider } })}>
+          <TouchableOpacity style={[styles.roundBtn, { borderColor: d.lineSoft }]} onPress={() => navigation.navigate('ChatThread', { provider })}>
             <Ionicons name="chatbubble-outline" size={16} color={d.line} />
           </TouchableOpacity>
         </View>
@@ -114,7 +145,7 @@ const LiveTrackingScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 18, paddingBottom: 32, paddingTop: 12 },
+  scroll: { padding: 18, paddingBottom: 32 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
   back: { width: 30, height: 30, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   headTitle: { fontSize: 16, fontWeight: '700' },
@@ -123,8 +154,12 @@ const styles = StyleSheet.create({
   etaCard: { borderWidth: 1, borderRadius: 14, padding: 16, marginBottom: 14, alignItems: 'center' },
   etaLbl: { fontSize: 9, letterSpacing: 0.5, fontFamily: MONO },
   etaBig: { fontSize: 30, fontWeight: '700', fontFamily: MONO, marginTop: 2, marginBottom: 14 },
-  routeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, width: '100%' },
-  track: { flex: 1, height: 4, borderRadius: 2, position: 'relative' },
+  pendingTitle: { fontSize: 15, fontWeight: '700', marginTop: 10 },
+  pendingSub: { fontSize: 12, marginTop: 4, textAlign: 'center' },
+  routeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, width: '100%' },
+  routeEnd: { alignItems: 'center', gap: 3, width: 60 },
+  routeLabel: { fontSize: 9, fontFamily: MONO, textAlign: 'center' },
+  track: { flex: 1, height: 4, borderRadius: 2, position: 'relative', marginTop: 7 },
   trackFill: { height: 4, borderRadius: 2 },
   marker: { position: 'absolute', top: -4, width: 12, height: 12, borderRadius: 6 },
 

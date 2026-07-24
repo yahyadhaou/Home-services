@@ -11,10 +11,10 @@ const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'mon
 const SERVICE_ICONS = { Klempner: 'water-outline', Elektriker: 'flash-outline', Reinigung: 'sparkles-outline', Maler: 'color-palette-outline', Schreiner: 'hammer-outline', Gärtner: 'leaf-outline', Umzug: 'car-outline', Handwerker: 'construct-outline' };
 
 const MOCK = [
-  { id: 'm1', service: 'Klempner',   provider: 'Müller GmbH',     date: '15.05.2025', time: '14:00', status: 'upcoming'  },
-  { id: 'm2', service: 'Reinigung',  provider: 'Clean Pro',       date: '10.05.2025', time: '10:00', status: 'completed', frequency: 'weekly' },
-  { id: 'm3', service: 'Elektriker', provider: 'Schmidt Elektro', date: '05.05.2025', time: '16:00', status: 'completed' },
-  { id: 'm4', service: 'Maler',      provider: 'Farbwerk GmbH',   date: '20.05.2025', time: '09:00', status: 'pending'   },
+  { id: 'm1', service: 'Klempner',   provider: 'Rüttenscheider Sanitärtechnik GmbH', date: '15.05.2026', time: '14:00', status: 'upcoming'  },
+  { id: 'm2', service: 'Reinigung',  provider: 'Blitzblank Gebäudereinigung GmbH',   date: '10.05.2026', time: '10:00', status: 'completed', frequency: 'weekly' },
+  { id: 'm3', service: 'Elektriker', provider: 'ElektroMeister Krause GmbH',         date: '05.05.2026', time: '16:00', status: 'completed' },
+  { id: 'm4', service: 'Maler',      provider: 'Farbwerk Malerbetrieb GmbH',         date: '20.05.2026', time: '09:00', status: 'pending'   },
 ];
 
 const MyBookingsScreen = ({ navigation }) => {

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from '
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '../../components/common';
 import { buildCalendarGrid } from '../../utils';
+import { withServiceFee, SERVICE_FEE_RATE } from '../../constants/pricing';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
 
@@ -15,6 +16,9 @@ const BookingScreen = ({ navigation, route }) => {
   const d = colors.dispatch;
   const styles = createStyles(d);
   const provider = route.params?.provider || {};
+  const service = route.params?.service;
+  const hideFrequency = !!route.params?.hideFrequency;
+  const prefilledSubtotal = route.params?.prefilledSubtotal; // relocation flow already computed its own subtotal (excl. fee)
   const today    = new Date();
   const [year, setYear]       = useState(today.getFullYear());
   const [month, setMonth]     = useState(today.getMonth());
@@ -30,12 +34,13 @@ const BookingScreen = ({ navigation, route }) => {
     { key: 'biweekly', label: t('booking.freqBiweekly') },
     { key: 'monthly', label: t('booking.freqMonthly') },
   ];
-  const isRecurring = frequency !== 'once';
-  const basePrice = 80;
+  const isRecurring = !hideFrequency && frequency !== 'once';
+  const basePrice = provider.hourlyRate || 80;
   const calloutFee = 25;
-  const subtotal = basePrice + calloutFee;
-  const discount = isRecurring ? Math.round(subtotal * 0.1) : 0;
-  const estimatedTotal = subtotal - discount;
+  const subtotalBeforeDiscount = prefilledSubtotal ?? (basePrice + calloutFee);
+  const discount = isRecurring ? Math.round(subtotalBeforeDiscount * 0.1) : 0;
+  const subtotal = subtotalBeforeDiscount - discount;
+  const { fee, total: estimatedTotal } = withServiceFee(subtotal);
 
   const MONTHS = t('booking.months');
   const DAYS   = t('booking.days');
@@ -47,8 +52,14 @@ const BookingScreen = ({ navigation, route }) => {
   const formatDate = () => (selDay ? `${String(selDay).padStart(2, '0')}.${String(month + 1).padStart(2, '0')}.${year}` : '');
 
   const handleContinue = () => {
-    navigation.navigate('BookingConfirmation', { provider, date: formatDate(), time: selTime, urgency, frequency, estimatedTotal });
+    navigation.navigate('BookingConfirmation', { provider, service, date: formatDate(), time: selTime, urgency, frequency, subtotal, fee, estimatedTotal, hideFrequency });
   };
+
+  // Weeks are chunked explicitly (rather than relying on flexWrap to break
+  // every 7 cells) so a date can never drift into the wrong weekday column
+  // from floating-point width rounding on odd-width screens.
+  const weeks = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
 
   return (
     <View style={styles.container}>
@@ -57,36 +68,38 @@ const BookingScreen = ({ navigation, route }) => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.providerCard}>
           <View style={styles.providerRow}>
-            <View style={styles.providerAvatar}><Ionicons name="business-outline" size={20} color={d.line} /></View>
+            <View style={styles.providerAvatar}><Ionicons name={provider.providerType === 'independent' ? 'person-outline' : 'business-outline'} size={20} color={d.line} /></View>
             <View style={styles.providerInfo}>
-              <Text style={styles.providerName}>{provider.name || 'Müller GmbH'}</Text>
+              <Text style={styles.providerName}>{provider.name || 'Rüttenscheider Sanitärtechnik GmbH'}</Text>
               <View style={styles.ratingRow}><Ionicons name="star" size={12} color={d.amber} /><Text style={styles.ratingText}>{provider.rating || '4.9'}</Text><Text style={styles.distanceText}> · {provider.distance || '1.2 km'}</Text></View>
             </View>
-            <Text style={styles.providerPrice}>€80/h</Text>
+            {!prefilledSubtotal ? <Text style={styles.providerPrice}>€{basePrice}/h</Text> : null}
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('booking.urgency')}</Text>
-          <View style={styles.urgencyRow}>
-            {[
-              { key: 'normal', label: t('booking.normal'), icon: 'calendar-outline', desc: t('booking.normalDesc') },
-              { key: 'emergency', label: t('emergency.title').split(' ')[0], icon: 'alert-circle-outline', desc: t('booking.emergencyDesc') },
-            ].map((opt) => {
-              const isDanger = opt.key === 'emergency';
-              const active = urgency === opt.key;
-              return (
-                <TouchableOpacity key={opt.key} style={styles.urgencyTouchable} onPress={() => setUrgency(opt.key)}>
-                  <View style={[styles.urgencyCard, active && (isDanger ? styles.urgencyCardDangerActive : styles.urgencyCardActive)]}>
-                    <Ionicons name={opt.icon} size={22} color={active ? (isDanger ? d.danger : d.line) : d.textSoft} />
-                    <Text style={[styles.urgencyLabel, active && { color: isDanger ? d.danger : d.text }]}>{opt.label}</Text>
-                    <Text style={styles.urgencyDesc}>{opt.desc}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+        {!hideFrequency ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('booking.urgency')}</Text>
+            <View style={styles.urgencyRow}>
+              {[
+                { key: 'normal', label: t('booking.normal'), icon: 'calendar-outline', desc: t('booking.normalDesc') },
+                { key: 'emergency', label: t('emergency.title').split(' ')[0], icon: 'alert-circle-outline', desc: t('booking.emergencyDesc') },
+              ].map((opt) => {
+                const isDanger = opt.key === 'emergency';
+                const active = urgency === opt.key;
+                return (
+                  <TouchableOpacity key={opt.key} style={styles.urgencyTouchable} onPress={() => setUrgency(opt.key)}>
+                    <View style={[styles.urgencyCard, active && (isDanger ? styles.urgencyCardDangerActive : styles.urgencyCardActive)]}>
+                      <Ionicons name={opt.icon} size={22} color={active ? (isDanger ? d.danger : d.line) : d.textSoft} />
+                      <Text style={[styles.urgencyLabel, active && { color: isDanger ? d.danger : d.text }]}>{opt.label}</Text>
+                      <Text style={styles.urgencyDesc}>{opt.desc}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
-        </View>
+        ) : null}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('booking.selectDate')}</Text>
@@ -97,24 +110,26 @@ const BookingScreen = ({ navigation, route }) => {
               <TouchableOpacity onPress={nextMonth} style={styles.navBtn}><Ionicons name="chevron-forward" size={16} color={d.text} /></TouchableOpacity>
             </View>
             <View style={styles.dayHeaders}>{DAYS.map((day) => <Text key={day} style={styles.dayHeader}>{day}</Text>)}</View>
-            <View style={styles.calGrid}>
-              {cells.map((cellDay, i) => {
-                const isPast  = cellDay !== null && new Date(year, month, cellDay) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                const isSel   = cellDay === selDay;
-                const isToday = cellDay === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-                return (
-                  <TouchableOpacity
-                    key={i}
-                    style={[styles.calCell, cellDay === null && styles.calCellEmpty, isSel && styles.calCellSelected, isToday && !isSel && styles.calCellToday]}
-                    onPress={() => cellDay && !isPast && setSelDay(cellDay)}
-                    disabled={!cellDay || isPast}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.calCellText, isPast && styles.calCellPastText, isSel && styles.calCellSelectedText, isToday && !isSel && styles.calCellTodayText]}>{cellDay || ''}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+            {weeks.map((week, wi) => (
+              <View key={wi} style={styles.calRow}>
+                {week.map((cellDay, i) => {
+                  const isPast  = cellDay !== null && new Date(year, month, cellDay) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                  const isSel   = cellDay === selDay;
+                  const isToday = cellDay === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+                  return (
+                    <TouchableOpacity
+                      key={i}
+                      style={[styles.calCell, cellDay === null && styles.calCellEmpty, isSel && styles.calCellSelected, isToday && !isSel && styles.calCellToday]}
+                      onPress={() => cellDay && !isPast && setSelDay(cellDay)}
+                      disabled={!cellDay || isPast}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.calCellText, isPast && styles.calCellPastText, isSel && styles.calCellSelectedText, isToday && !isSel && styles.calCellTodayText]}>{cellDay || ''}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ))}
           </View>
         </View>
 
@@ -131,29 +146,38 @@ const BookingScreen = ({ navigation, route }) => {
           </View>
         ) : null}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('booking.frequency')}</Text>
-          <View style={styles.freqRow}>
-            {FREQUENCIES.map((f) => (
-              <TouchableOpacity key={f.key} style={[styles.freqChip, frequency === f.key && styles.freqChipActive]} onPress={() => setFrequency(f.key)}>
-                <Text style={[styles.freqText, frequency === f.key && styles.freqTextActive]}>{f.label}</Text>
-              </TouchableOpacity>
-            ))}
+        {!hideFrequency ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('booking.frequency')}</Text>
+            <View style={styles.freqRow}>
+              {FREQUENCIES.map((f) => (
+                <TouchableOpacity key={f.key} style={[styles.freqChip, frequency === f.key && styles.freqChipActive]} onPress={() => setFrequency(f.key)}>
+                  <Text style={[styles.freqText, frequency === f.key && styles.freqTextActive]}>{f.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {isRecurring ? <Text style={styles.freqHint}>{t('booking.recurringHint')}</Text> : null}
           </View>
-          {isRecurring ? <Text style={styles.freqHint}>{t('booking.recurringHint')}</Text> : null}
-        </View>
+        ) : null}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('booking.estimate')}</Text>
           <View style={styles.ticket}>
-            <View style={styles.ticketRow}><Text style={styles.ticketLabel}>{t('booking.calloutFee')}</Text><Text style={styles.ticketValue}>€{calloutFee}</Text></View>
-            <View style={styles.ticketRow}><Text style={styles.ticketLabel}>{t('booking.hourlyRate')}</Text><Text style={styles.ticketValue}>€{basePrice}/h</Text></View>
+            {!prefilledSubtotal ? (
+              <>
+                <View style={styles.ticketRow}><Text style={styles.ticketLabel}>{t('booking.calloutFee')}</Text><Text style={styles.ticketValue}>€{calloutFee}</Text></View>
+                <View style={styles.ticketRow}><Text style={styles.ticketLabel}>{t('booking.hourlyRate')}</Text><Text style={styles.ticketValue}>€{basePrice}/h</Text></View>
+              </>
+            ) : (
+              <View style={styles.ticketRow}><Text style={styles.ticketLabel}>{t('booking.servicePrice')}</Text><Text style={styles.ticketValue}>€{subtotalBeforeDiscount}</Text></View>
+            )}
             {isRecurring ? (
               <View style={styles.ticketRow}><Text style={[styles.ticketLabel, { color: d.green }]}>{t('booking.recurringDiscount')}</Text><Text style={[styles.ticketValue, { color: d.green }]}>-€{discount}</Text></View>
             ) : null}
+            <View style={styles.ticketRow}><Text style={styles.ticketLabel}>{t('booking.serviceFee', { rate: Math.round(SERVICE_FEE_RATE * 100) })}</Text><Text style={styles.ticketValue}>€{fee}</Text></View>
             <View style={styles.ticketDivider} />
             <View style={styles.ticketRow}><Text style={styles.ticketTotalLabel}>{t('booking.estimatedTotal')}</Text><Text style={styles.ticketTotalValue}>€{estimatedTotal}</Text></View>
-            <Text style={styles.ticketNote}>{t('booking.estimateNote')}</Text>
+            <Text style={styles.ticketNote}>{t('booking.vatNote')}</Text>
           </View>
         </View>
       </ScrollView>
@@ -196,8 +220,8 @@ const createStyles = (d) => StyleSheet.create({
   monthTitle: { fontSize: 14, fontWeight: '700', color: d.text },
   dayHeaders: { flexDirection: 'row', marginBottom: 8 },
   dayHeader: { flex: 1, textAlign: 'center', fontSize: 11, fontWeight: '600', color: d.textSoft },
-  calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  calCell: { width: `${100 / 7}%`, aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 999 },
+  calRow: { flexDirection: 'row' },
+  calCell: { flex: 1, aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 999 },
   calCellEmpty: { opacity: 0 },
   calCellSelected: { backgroundColor: d.line },
   calCellToday: { borderWidth: 1, borderColor: d.line },

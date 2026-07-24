@@ -8,8 +8,8 @@ import { useTheme } from '../../constants/ThemeContext';
 const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
 const INITIAL = [
-  { id: 'a1', label: 'Home', icon: 'home-outline', line1: 'Musterstrasse 12', line2: '45127 Essen', isDefault: true },
-  { id: 'a2', label: 'Office', icon: 'business-outline', line1: 'Bahnhofsplatz 3', line2: '45127 Essen', isDefault: false },
+  { id: 'a1', label: 'Home', icon: 'home-outline', line1: 'Rüttenscheider Straße 142', line2: '45131 Essen-Rüttenscheid', isDefault: true },
+  { id: 'a2', label: 'Office', icon: 'business-outline', line1: 'Altendorfer Straße 76', line2: '45127 Essen-Innenstadt', isDefault: false },
 ];
 
 const SavedAddressesScreen = ({ navigation }) => {

@@ -97,9 +97,9 @@ export default {
     available: 'available',
     plumber: 'Plumber', electrician: 'Electrician', cleaning: 'Cleaning',
     heating: 'Heating', carpenter: 'Carpenter', painter: 'Painter',
-    gardener: 'Gardener', moving: 'Moving',
+    gardener: 'Gardener', moving: 'Moving', handyman: 'Handyman', internet: 'Internet Technician',
     statusConfirmed: 'Confirmed', statusCompleted: 'Completed', statusPending: 'Pending',
-    liveDispatch: 'Live dispatch', prosNearby: 'Pros nearby', fastestMatch: 'Fastest match',
+    liveDispatch: 'Live dispatch', prosNearby: 'Pros nearby', fastestMatch: 'Fastest match', you: 'You',
     recentJob: 'Recent job', history: 'History', bookAgain: 'Book again',
   },
 
@@ -176,6 +176,22 @@ export default {
         { name: 'Storage Solutions', icon: 'file-tray-full-outline' },
         { name: 'Piano Moving', icon: 'musical-notes-outline' },
       ],
+      handyman: [
+        { name: 'Furniture Assembly', icon: 'construct', urgent: true },
+        { name: 'Wall Mounting', icon: 'grid-outline' },
+        { name: 'Small Repairs', icon: 'hammer-outline' },
+        { name: 'Curtain & Blind Fitting', icon: 'apps-outline' },
+        { name: 'Door & Lock Fixes', icon: 'key-outline' },
+        { name: 'General Odd Jobs', icon: 'briefcase-outline' },
+      ],
+      internet: [
+        { name: 'No Internet Connection', icon: 'wifi-outline', urgent: true },
+        { name: 'Router & Modem Setup', icon: 'hardware-chip-outline' },
+        { name: 'Wi-Fi Coverage & Mesh', icon: 'grid-outline' },
+        { name: 'Network Cabling', icon: 'git-network-outline' },
+        { name: 'Smart Home Networking', icon: 'home-outline' },
+        { name: 'Speed & Signal Diagnostics', icon: 'speedometer-outline' },
+      ],
     },
     faqs: {
       plumber: [
@@ -210,6 +226,14 @@ export default {
         { q: 'Do movers provide packing materials?', a: 'Most moving providers offer boxes, tape, and protective wrapping as part of their packing service.' },
         { q: 'How far in advance should I book?', a: 'We recommend booking at least 1-2 weeks ahead, especially for weekend moves.' },
       ],
+      handyman: [
+        { q: 'What kind of small jobs can a handyman do?', a: 'Furniture assembly, shelf and TV mounting, minor repairs, and other odd jobs that do not need a specialist trade.' },
+        { q: 'Do I need to provide tools or materials?', a: 'No, our handymen bring their own tools. Materials like screws or brackets are usually included; larger parts may cost extra.' },
+      ],
+      internet: [
+        { q: 'Can a technician fix a router or Wi-Fi dead zone?', a: 'Yes — most visits cover router configuration, Wi-Fi mesh installation, and diagnosing weak signal in specific rooms.' },
+        { q: 'Do I need to be with my internet provider already?', a: 'No, technicians can set up or troubleshoot any router or ISP connection, and also wire networking for smart home devices.' },
+      ],
     },
   },
 
@@ -218,7 +242,7 @@ export default {
     sortDistance: 'Distance', sortRating: 'Rating', sortPrice: 'Price',
     results: 'results',
     responseTime: 'response time', completedJobs: 'jobs completed',
-    company: 'Company', independent: 'Independent',
+    company: 'Company', independent: 'Independent', all: 'All', filterBy: 'Filter by', perHour: 'hour',
   },
 
   // Provider Detail
@@ -240,6 +264,46 @@ export default {
     popularCategories: 'Popular Categories',
     resultsFor: 'results for',
     noResults: 'No results found.',
+  },
+
+  // Relocation (moving) flow
+  relocation: {
+    title: 'Relocation', subtitle: 'Company or independent — matched to your move',
+    stepHomeTitle: "Tell us about your home",
+    propertyType: 'Property type', apartment: 'Apartment', house: 'House',
+    roomCount: 'Number of rooms', rooms: 'room',
+    floor: 'Floor', groundFloor: 'Ground floor', floorShort: 'floor',
+    hasElevator: 'This building has an elevator',
+    noElevatorHint: 'No elevator on floor {{floor}} — carrying costs are included in the estimate.',
+    stepItemsTitle: 'What are you relocating?',
+    item_furniture: 'Furniture', item_boxes: 'Boxes', item_appliances: 'Appliances',
+    item_kitchen: 'Kitchen', item_heavy: 'Piano / heavy items', item_misc: 'Bike / misc.',
+    estimatedVolume: 'Estimated volume', volumeNote: 'This sets which vehicle size can take your move.',
+    tier_0: 'Car', tier_1: 'Van', tier_2: 'Sprinter', tier_3: 'Moving truck',
+    stepRouteTitle: 'Where to?',
+    destination: 'Destination',
+    city_essen: 'Essen (local)', city_muelheim: 'Mülheim a.d.R.', city_bochum: 'Bochum',
+    city_oberhausen: 'Oberhausen', city_duisburg: 'Duisburg', city_duesseldorf: 'Düsseldorf', city_dortmund: 'Dortmund',
+    stepMoverTitle: 'Choose your mover',
+    companyOption: 'Moving company', companyDesc: 'Insured team, fixed price, full-service',
+    independentOption: 'Independent helper', independentDesc: "Own vehicle, flexible, budget-friendly",
+    laborOption: 'Helpers only', laborDesc: 'You provide the van (yours or a friend\'s) — just hire the muscle',
+    bullet_insured: 'Insured against damage', bullet_fixedPrice: 'Fixed price, no surprises', bullet_crew: '2-3 person crew included',
+    bullet_cheaper: 'Usually cheaper', bullet_flexible: 'Flexible timing', bullet_ownCar: 'Brings their own vehicle',
+    bullet_cheapest: 'Cheapest option', bullet_yourVan: 'Uses your own or a borrowed vehicle',
+    bullet_notInsured: 'Not insured via the platform — agree liability directly',
+    helperCount: 'Number of helpers', helpers: 'helper(s)',
+    recommendHelpers: 'Recommended: {{count}} helpers for this volume (fewer is fine, just slower)',
+    matched: 'Matched for your move', noMatch: 'No match yet — try a smaller volume or the other option.',
+    laborOnly: 'Helper only (no vehicle)', mayNeedTrips: 'Smaller vehicle — may need multiple trips',
+    continue: 'Continue', pickHint: 'Pick a match above to continue to booking',
+  },
+
+  // Nearby (map tab)
+  nearby: {
+    title: 'Nearby', subtitle: '{{count}} pros around you right now',
+    live: 'Live map', tapPin: 'Tap a pin to preview a pro',
+    allNearby: 'All nearby',
   },
 
   // Emergency Booking
@@ -271,6 +335,11 @@ export default {
     trackJob: 'Track job',
   },
 
+  // Chat inbox
+  chatList: {
+    title: 'Messages', search: 'Search conversations…',
+  },
+
   // Chat
   chat: {
     online: 'Online', placeholder: 'Type a message...', autoReply: 'Thanks for your message. I\'ll get back to you shortly.',
@@ -291,9 +360,11 @@ export default {
     days: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
     frequency: 'How often?', freqOnce: 'One-time', freqWeekly: 'Weekly', freqBiweekly: 'Bi-weekly', freqMonthly: 'Monthly',
     recurringHint: "You'll get a 10% recurring discount and can cancel anytime.",
-    estimate: 'Price estimate', calloutFee: 'Call-out fee', hourlyRate: 'Hourly rate',
-    recurringDiscount: 'Recurring discount', estimatedTotal: 'Estimated total',
+    estimate: 'Price estimate', calloutFee: 'Call-out fee', hourlyRate: 'Hourly rate', servicePrice: 'Service price',
+    recurringDiscount: 'Recurring discount', estimatedTotal: 'Total',
+    serviceFee: 'Service fee ({{rate}}%)',
     estimateNote: 'Final price may vary based on job complexity.',
+    vatNote: 'Price includes VAT (19%). Final price may vary based on job complexity.',
   },
 
   // Booking Confirmation
@@ -335,7 +406,7 @@ export default {
     guest: 'Guest', bookings: 'Bookings', favorites: 'Favorites', rating: 'Rating',
     editProfile: 'Edit Profile', myBookings: 'My Bookings', paymentMethods: 'Payment Methods',
     notifications: 'Notifications', settings: 'Settings', logOut: 'Log Out',
-    savedAddresses: 'Saved Addresses', helpSupport: 'Help & Support',
+    savedAddresses: 'Saved Addresses', helpSupport: 'Help & Support', messages: 'Messages',
   },
 
   // Edit Profile
@@ -375,7 +446,7 @@ export default {
   notifications: {
     title: 'Notifications', markAllRead: 'Mark all read', empty: 'No Notifications',
     bookingConfirmedTitle: 'Booking Confirmed', bookingConfirmedBody: 'Your appointment on 15/05 at 2:00 PM has been confirmed.',
-    reminderTitle: 'Appointment Tomorrow', reminderBody: "Don't forget: Müller GmbH arrives tomorrow at 2 PM.",
+    reminderTitle: 'Appointment Tomorrow', reminderBody: "Don't forget: Rüttenscheider Sanitärtechnik GmbH arrives tomorrow at 2 PM.",
     promoTitle: '20% Off Cleaning', promoBody: 'Today only: book a cleaning service and save 20%.',
     reviewTitle: 'Leave a Review', reviewBody: 'How was your appointment with Schmidt Sanitär?',
     systemTitle: 'App Updated', systemBody: 'HomeServices has been updated to version 1.1.0.',
@@ -403,9 +474,10 @@ export default {
 
   // Live Tracking
   liveTracking: {
-    title: 'Live tracking', etaLabel: 'Estimated arrival', plumber: 'Plumber', status: 'Job status',
-    step_matched: 'Matched with a pro', step_enroute: 'On the way', step_arriving: 'Arriving',
+    title: 'Live tracking', etaLabel: 'Estimated arrival', plumber: 'Plumber', status: 'Job status', you: 'You',
+    step_pending: 'Waiting for confirmation', step_matched: 'Matched with a pro', step_enroute: 'On the way', step_arriving: 'Arriving',
     step_inprogress: 'Job in progress', step_completed: 'Completed',
+    waitingTitle: 'Waiting for confirmation', waitingSub: '{{name}} has been notified and is reviewing your request.',
     now: 'Now', cancelJob: 'Cancel job',
     cancelTitle: 'Cancel job', cancelBody: 'Are you sure you want to cancel this job?', cancelConfirm: 'Cancel job',
   },
@@ -429,5 +501,45 @@ export default {
   common: {
     back: 'Back', cancel: 'Cancel', save: 'Save', delete: 'Delete', edit: 'Edit',
     loading: 'Loading…', error: 'An error occurred', retry: 'Retry',
+  },
+
+  // Legal — placeholder/template text for UI preview only, not reviewed by
+  // a lawyer. Must be replaced with real, jurisdiction-checked text (German
+  // PAngV/Fernabsatzrecht, GDPR) before this app handles real users.
+  legal: {
+    draftNotice: 'Template text for preview purposes — not yet reviewed by a lawyer. Do not rely on this for a live launch.',
+    terms: {
+      title: 'Terms of Service',
+      updated: 'Last updated: July 2026',
+      sections: [
+        { heading: '1. Acceptance of these Terms', body: 'By creating an account or booking a service through HomeServices, you agree to these Terms of Service and to our Privacy Policy. If you do not agree, please do not use the app.' },
+        { heading: '2. What HomeServices Is', body: 'HomeServices is a marketplace that connects customers with independent tradespeople, registered service companies, and independent movers in the Essen/NRW area. We do not employ providers and do not ourselves perform plumbing, electrical, cleaning, moving, or other listed services.' },
+        { heading: '3. Accounts', body: 'You must be at least 18 years old and provide accurate contact and address information. You are responsible for keeping your login credentials secure and for all activity under your account.' },
+        { heading: '4. Bookings, Pricing & Fees', body: 'The price shown before you confirm a booking is final: it includes the provider’s service price, a platform service fee (currently 12%), and statutory VAT. Cancelling within 2 hours of the appointment may incur a fee, shown at time of cancellation.' },
+        { heading: '5. Your Relationship With Providers', body: 'Companies and independent providers are shown separately in the app because they are not the same: companies carry business insurance and employ their own staff; independent providers are self-employed individuals working on their own account. HomeServices is not a party to the service contract between you and the provider.' },
+        { heading: '6. Payments & Refunds', body: 'Payments are processed via SEPA or card through our payment provider. If a booking is cancelled by the provider, or the service is not delivered as booked, you are entitled to a full refund of the amount charged.' },
+        { heading: '7. Acceptable Use', body: 'You agree not to use the app for fraudulent bookings, to circumvent the platform to avoid fees, or to harass providers or other users.' },
+        { heading: '8. Liability', body: 'HomeServices makes reasonable efforts to match you with qualified providers but does not guarantee the quality of work performed. Our liability, to the extent permitted by German law, is limited to the amount paid for the relevant booking. This does not affect your statutory consumer rights.' },
+        { heading: '9. Suspension & Termination', body: 'We may suspend or close an account that breaches these Terms, including fraudulent activity or abuse of providers or support staff.' },
+        { heading: '10. Governing Law', body: 'These Terms are governed by German law. Mandatory consumer-protection rules of your country of residence, if you are an EU consumer, remain unaffected.' },
+        { heading: '11. Changes to These Terms', body: 'We may update these Terms from time to time. We will notify you of material changes before they take effect.' },
+      ],
+    },
+    privacy: {
+      title: 'Privacy Policy',
+      updated: 'Last updated: July 2026',
+      sections: [
+        { heading: '1. Who We Are', body: 'HomeServices (placeholder legal entity, Essen, Germany) is the data controller for the personal data described in this policy. Contact: privacy@homeservices.example (placeholder).' },
+        { heading: '2. What We Collect', body: 'Account details (name, email, phone), your address and location (to match you with nearby providers), booking history, and messages exchanged with providers through the app. Payment card details are handled directly by our payment processor — we do not store full card numbers.' },
+        { heading: '3. How We Use Your Data', body: 'To create and manage your bookings, match you with available providers, send booking-related notifications, prevent fraud, and meet our legal obligations (for example, invoice retention under German tax law).' },
+        { heading: '4. Legal Basis', body: 'We process your data to perform the contract when you book a service, based on our legitimate interest in running a safe marketplace, and based on your consent where you have opted in to marketing communications.' },
+        { heading: '5. Sharing With Others', body: 'When you book a service, the matched provider receives the information needed to complete the job (your name, address, phone number, and job details). We do not sell your data to advertisers.' },
+        { heading: '6. How Long We Keep It', body: 'We keep account data while your account is active, and invoice-related data for the period required by German tax law (currently up to 10 years), even after account closure.' },
+        { heading: '7. Your Rights', body: 'Under the GDPR you can request access to, correction of, or deletion of your data, ask us to restrict or object to processing, and request a copy of your data in a portable format. You can also lodge a complaint with your regional data protection authority (in NRW: Landesbeauftragte für Datenschutz und Informationsfreiheit).' },
+        { heading: '8. Cookies & Analytics', body: 'The app uses functional storage needed to keep you signed in and remember your preferences. Any analytics or tracking beyond that will always be described here before being enabled.' },
+        { heading: '9. Security', body: 'Data is encrypted in transit (TLS). Access to personal data internally is limited to what is needed to operate the service.' },
+        { heading: '10. Contact', body: 'For any privacy question or to exercise your rights, contact privacy@homeservices.example (placeholder) or use Help & Support in the app.' },
+      ],
+    },
   },
 };

@@ -8,24 +8,45 @@ import { useTheme } from '../../constants/ThemeContext';
 
 const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
+// Maps the translated display name shown in the UI (e.g. "Plumber") back to the
+// German category key used in the provider mock data (e.g. "Klempner") — same
+// resolution pattern as ServiceCategoryScreen's SERVICE_META/resolveServiceCode.
+const CATEGORY_BY_CODE = {
+  plumber: 'Klempner', electrician: 'Elektriker', cleaning: 'Reinigung', heating: 'Heizung',
+  carpenter: 'Schreiner', painter: 'Maler', gardener: 'Gärtner', internet: 'Internettechniker', handyman: 'Handwerker',
+};
+const resolveCategory = (displayName, t) => {
+  const code = Object.keys(CATEGORY_BY_CODE).find((c) => t(`home.${c}`) === displayName);
+  return code ? CATEGORY_BY_CODE[code] : null;
+};
+
 const ProviderListScreen = ({ navigation, route }) => {
   const { t } = useLanguage();
   const { colors } = useTheme();
   const d = colors.dispatch;
   const styles = createStyles(d);
   const serviceName = route.params?.service || t('home.plumber');
+  const category = resolveCategory(serviceName, t);
   const [sortBy, setSortBy] = useState('distance');
-  const { providers, loading } = useProviders();
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const { providers, loading } = useProviders(category);
 
   const SORT_OPTIONS = [
     { key: 'distance', label: t('providerList.sortDistance'), icon: 'location-outline' },
     { key: 'rating',   label: t('providerList.sortRating'),  icon: 'star-outline'     },
     { key: 'price',    label: t('providerList.sortPrice'),    icon: 'cash-outline'     },
   ];
+  const TYPE_FILTERS = [
+    { key: 'all', label: t('providerList.all') },
+    { key: 'company', label: t('providerList.company') },
+    { key: 'independent', label: t('providerList.independent') },
+  ];
 
-  const sorted = [...providers].sort((a, b) => {
+  const filtered = typeFilter === 'all' ? providers : providers.filter((p) => p.providerType === typeFilter);
+  const sorted = [...filtered].sort((a, b) => {
     if (sortBy === 'rating') return b.rating - a.rating;
-    if (sortBy === 'price')  return a.price.length - b.price.length;
+    if (sortBy === 'price')  return a.hourlyRate - b.hourlyRate;
     return parseFloat(a.distance) - parseFloat(b.distance);
   });
 
@@ -49,7 +70,10 @@ const ProviderListScreen = ({ navigation, route }) => {
               <Text style={styles.distance}>{item.distance}</Text>
             </View>
           </View>
-          <Text style={styles.price}>{item.price}</Text>
+          <View style={styles.priceWrap}>
+            <Text style={styles.price}>€{item.hourlyRate}</Text>
+            <Text style={styles.priceUnit}>/ {t('providerList.perHour')}</Text>
+          </View>
         </View>
 
         <View style={styles.statsRow}>
@@ -65,8 +89,23 @@ const ProviderListScreen = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <Header title={serviceName} onBackPress={() => navigation.goBack()} rightComponent={
-        <TouchableOpacity style={styles.filterBtn}><Ionicons name="options-outline" size={16} color={d.text} /></TouchableOpacity>
+        <TouchableOpacity style={[styles.filterBtn, filterOpen && { borderColor: d.line, backgroundColor: d.panel }]} onPress={() => setFilterOpen((o) => !o)}>
+          <Ionicons name="options-outline" size={16} color={filterOpen ? d.line : d.text} />
+        </TouchableOpacity>
       } />
+
+      {filterOpen ? (
+        <View style={styles.filterBar}>
+          <Text style={styles.filterLabel}>{t('providerList.filterBy').toUpperCase()}</Text>
+          <View style={styles.filterChipRow}>
+            {TYPE_FILTERS.map((f) => (
+              <TouchableOpacity key={f.key} style={[styles.filterChip, typeFilter === f.key && styles.filterChipActive]} onPress={() => setTypeFilter(f.key)}>
+                <Text style={[styles.filterChipText, typeFilter === f.key && styles.filterChipTextActive]}>{f.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       <View style={styles.sortBar}>
         {SORT_OPTIONS.map((opt) => (
@@ -90,6 +129,13 @@ const ProviderListScreen = ({ navigation, route }) => {
 const createStyles = (d) => StyleSheet.create({
   container: { flex: 1, backgroundColor: d.canvas },
   filterBtn: { width: 30, height: 30, borderRadius: 8, borderWidth: 1, borderColor: d.lineSoft, alignItems: 'center', justifyContent: 'center' },
+  filterBar: { paddingHorizontal: 18, paddingTop: 10, paddingBottom: 4, backgroundColor: d.canvas, borderBottomWidth: 1, borderBottomColor: d.lineSoft },
+  filterLabel: { fontSize: 9.5, letterSpacing: 0.5, color: d.textSoft, fontFamily: MONO, marginBottom: 8 },
+  filterChipRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  filterChip: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 20, backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft },
+  filterChipActive: { backgroundColor: d.line, borderColor: d.line },
+  filterChipText: { fontSize: 12, fontWeight: '600', color: d.text },
+  filterChipTextActive: { color: d.canvas },
   sortBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 10, backgroundColor: d.canvas, gap: 8, borderBottomWidth: 1, borderBottomColor: d.lineSoft },
   sortChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 11, paddingVertical: 6, borderRadius: 20, backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft, gap: 4 },
   sortChipActive: { backgroundColor: d.line, borderColor: d.line },
@@ -110,7 +156,9 @@ const createStyles = (d) => StyleSheet.create({
   reviews: { fontSize: 12, color: d.textSoft },
   dot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: d.textSoft },
   distance: { fontSize: 12, color: d.textSoft },
-  price: { fontSize: 14, fontWeight: '700', color: d.text, fontFamily: MONO },
+  priceWrap: { alignItems: 'flex-end' },
+  price: { fontSize: 17, fontWeight: '700', color: d.amber, fontFamily: MONO },
+  priceUnit: { fontSize: 9.5, color: d.textSoft, fontFamily: MONO },
   statsRow: { flexDirection: 'row', gap: 16, marginBottom: 10 },
   stat: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   statText: { fontSize: 11, color: d.textSoft },

@@ -23,6 +23,7 @@ const ProfileScreen = ({ navigation }) => {
     { icon: 'heart-outline',         label: t('profile.favorites'),    screen: 'Favorites'      },
     { icon: 'card-outline',          label: t('profile.paymentMethods'), screen: 'PaymentMethods' },
     { icon: 'location-outline',      label: t('profile.savedAddresses'), screen: 'SavedAddresses' },
+    { icon: 'chatbubbles-outline',   label: t('profile.messages'),     screen: 'ChatList'       },
     { icon: 'notifications-outline', label: t('profile.notifications'), screen: 'Notifications'  },
     { icon: 'help-buoy-outline',     label: t('profile.helpSupport'),  screen: 'HelpSupport'    },
     { icon: 'settings-outline',      label: t('profile.settings'),     screen: 'Settings'       },

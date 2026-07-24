@@ -67,11 +67,12 @@ const HomeScreen = ({ navigation }) => {
     { code: '05/CRP', icon: 'hammer-outline', name: t('home.carpenter'), available: 10, category: t('home.carpenter') },
     { code: '06/PNT', icon: 'color-palette-outline', name: t('home.painter'), available: 14, category: t('home.painter') },
     { code: '07/GRD', icon: 'leaf-outline', name: t('home.gardener'), available: 9, category: t('home.gardener') },
-    { code: '08/MOV', icon: 'car-outline', name: t('home.moving'), available: 5, category: t('home.moving') },
+    { code: '08/NET', icon: 'wifi-outline', name: t('home.internet'), available: 7, category: t('home.internet') },
+    { code: '09/HDW', icon: 'construct-outline', name: t('home.handyman'), available: 11, category: t('home.handyman') },
   ];
 
   const MOCK_BOOKINGS = [
-    { id: 'm1', service: t('home.plumber'), provider: 'Müller GmbH', date: '15.05.2025', time: '14:00', status: 'confirmed' },
+    { id: 'm1', service: t('home.plumber'), provider: 'Rüttenscheider Sanitärtechnik GmbH', date: '15.05.2026', time: '14:00', status: 'confirmed' },
   ];
   const displayBookings = bookings.length > 0 ? bookings : MOCK_BOOKINGS;
   const recent = displayBookings[0];
@@ -116,6 +117,7 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles2.radarField}>
             <RadarSweep color={d.lineSoft} />
             <View style={[styles2.center, { borderColor: d.amber }]} />
+            <Text style={[styles2.youLabel, { color: d.amber }]}>{t('home.you').toUpperCase()} · RÜTTENSCHEID</Text>
             {PRO_DOTS.map((p, i) => (
               <View key={i} style={[styles2.proDotAbs, { top: p.top, left: p.left }]}>
                 <RadarPulseDot delay={p.delay} color={d.line} />
@@ -150,7 +152,7 @@ const HomeScreen = ({ navigation }) => {
               activeOpacity={0.75}
             >
               <Text style={[styles2.tileCode, { color: d.line }]}>{s.code}</Text>
-              <Ionicons name={s.icon} size={30} color={d.line} style={styles2.tileIcon} />
+              <Ionicons name={s.icon} size={36} color={d.line} style={styles2.tileIcon} />
               <Text style={[styles2.tileName, { color: d.text }]} numberOfLines={1}>{s.name}</Text>
               <Text style={[styles2.tileAvail, { color: d.amber }]}>{s.available} {t('home.available')}</Text>
             </TouchableOpacity>
@@ -210,6 +212,7 @@ const createStyles = () => StyleSheet.create({
 
   radarField: { height: 118, alignItems: 'center', justifyContent: 'center', position: 'relative' },
   center: { width: 10, height: 10, borderRadius: 5, borderWidth: 1.5 },
+  youLabel: { position: 'absolute', top: '54%', fontSize: 8, letterSpacing: 0.4, fontFamily: MONO },
   proDotAbs: { position: 'absolute' },
 
   radarStats: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: 1 },
@@ -220,12 +223,12 @@ const createStyles = () => StyleSheet.create({
   sechH: { fontSize: 15, fontWeight: '700' },
   sechSee: { fontSize: 10, letterSpacing: 0.4, fontFamily: MONO },
 
-  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
-  tile: { width: '23.5%', aspectRatio: 0.88, borderRadius: 14, borderWidth: 1, padding: 8, alignItems: 'center', justifyContent: 'center' },
-  tileIcon: { marginVertical: 6 },
-  tileCode: { position: 'absolute', top: 8, left: 8, fontSize: 8, letterSpacing: 0.3, fontFamily: MONO },
-  tileName: { fontSize: 11.5, fontWeight: '700', textAlign: 'center' },
-  tileAvail: { fontSize: 9, fontFamily: MONO, marginTop: 2, textAlign: 'center' },
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
+  tile: { width: '31%', aspectRatio: 1, borderRadius: 16, borderWidth: 1, padding: 8, alignItems: 'center', justifyContent: 'center' },
+  tileIcon: { marginVertical: 8 },
+  tileCode: { position: 'absolute', top: 9, left: 9, fontSize: 8.5, letterSpacing: 0.3, fontFamily: MONO },
+  tileName: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
+  tileAvail: { fontSize: 10, fontFamily: MONO, marginTop: 3, textAlign: 'center' },
 
   ticket: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, padding: 14, gap: 10 },
   jobNo: { fontSize: 10, letterSpacing: 0.4, fontFamily: MONO, marginBottom: 3 },

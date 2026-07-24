@@ -10,9 +10,9 @@ import { useTheme } from '../../constants/ThemeContext';
 const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
 const REVIEWS = [
-  { id: '1', author: 'Anna M.',  rating: 5, date: '05.05.2025', comment: 'Sehr professionell und pünktlich. Kann ich nur empfehlen!' },
-  { id: '2', author: 'Klaus B.', rating: 4, date: '01.05.2025', comment: 'Gute Arbeit, schnell und sauber.' },
-  { id: '3', author: 'Sara T.',  rating: 5, date: '25.04.2025', comment: 'Toller Service, sehr freundlich.' },
+  { id: '1', author: 'Anna M.',  rating: 5, date: '05.05.2026', comment: 'Sehr professionell und pünktlich. Kann ich nur empfehlen!' },
+  { id: '2', author: 'Klaus B.', rating: 4, date: '01.05.2026', comment: 'Gute Arbeit, schnell und sauber.' },
+  { id: '3', author: 'Sara T.',  rating: 5, date: '25.04.2026', comment: 'Toller Service, sehr freundlich.' },
 ];
 
 const ProviderDetailScreen = ({ navigation, route }) => {
@@ -36,21 +36,23 @@ const ProviderDetailScreen = ({ navigation, route }) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.heroWrap}>
           <View style={styles.hero}>
-            <Ionicons name="business-outline" size={56} color={d.line} />
+            <Ionicons name={provider.providerType === 'independent' ? 'person-outline' : 'business-outline'} size={56} color={d.line} />
           </View>
           <TouchableOpacity style={[styles.backBtn, { top: insets.top + 10 }]} onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={16} color={d.text} /></TouchableOpacity>
           <TouchableOpacity style={[styles.backBtn, styles.favBtn, { top: insets.top + 10 }]} onPress={toggleFav}><Ionicons name={fav ? 'heart' : 'heart-outline'} size={16} color={fav ? d.danger : d.text} /></TouchableOpacity>
         </View>
 
         <View style={styles.infoCard}>
-          <Text style={styles.providerName}>{provider.name || 'Müller GmbH'}</Text>
+          <Text style={styles.providerName}>{provider.name || 'Rüttenscheider Sanitärtechnik GmbH'}</Text>
+          <Text style={styles.typeTag}>{provider.providerType === 'independent' ? t('providerList.independent') : t('providerList.company')}</Text>
           <View style={styles.metaRow}>
             <Ionicons name="star" size={14} color={d.amber} />
             <Text style={styles.rating}>{provider.rating || '4.9'}</Text>
             <Text style={styles.reviews}>({provider.reviews || 234} {t('providerDetail.reviews')})</Text>
             {provider.verified ? <Badge label={t('providerDetail.verified')} color={d.green} /> : null}
           </View>
-          <Text style={styles.distance}>{provider.distance || '1.2 km'}</Text>
+          <Text style={styles.distance}>{provider.street ? `${provider.street}, ${provider.plz} Essen-${provider.district}` : 'Rüttenscheider Straße 88, 45131 Essen-Rüttenscheid'}</Text>
+          <Text style={styles.distanceKm}>{provider.distance || '1.2 km'}</Text>
 
           <View style={styles.statsRow}>
             {[
@@ -129,7 +131,7 @@ const ProviderDetailScreen = ({ navigation, route }) => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <View><Text style={styles.priceFrom}>{t('providerDetail.from')}</Text><Text style={styles.price}>€80/h</Text></View>
+        <View><Text style={styles.priceFrom}>{t('providerDetail.from')}</Text><Text style={styles.price}>€{provider.hourlyRate || 80}/h</Text></View>
         <Button onPress={() => navigation.navigate('Booking', { provider })} icon="calendar-outline" style={styles.bookBtn}>{t('providerDetail.bookNow')}</Button>
       </View>
     </View>
@@ -143,11 +145,13 @@ const createStyles = (d) => StyleSheet.create({
   backBtn: { position: 'absolute', top: 56, left: 18, width: 32, height: 32, borderRadius: 8, backgroundColor: d.canvas, borderWidth: 1, borderColor: d.lineSoft, alignItems: 'center', justifyContent: 'center' },
   favBtn: { left: undefined, right: 18 },
   infoCard: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 12 },
-  providerName: { fontSize: 21, fontWeight: '700', color: d.text, marginBottom: 4 },
+  providerName: { fontSize: 21, fontWeight: '700', color: d.text, marginBottom: 2 },
+  typeTag: { fontSize: 11.5, color: d.line, fontWeight: '600', marginBottom: 6 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' },
   rating: { fontSize: 14, fontWeight: '700', color: d.text },
   reviews: { fontSize: 12.5, color: d.textSoft },
-  distance: { fontSize: 12.5, color: d.textSoft, marginBottom: 14 },
+  distance: { fontSize: 12.5, color: d.textSoft },
+  distanceKm: { fontSize: 12.5, color: d.textSoft, marginBottom: 14 },
   statsRow: { flexDirection: 'row', gap: 8 },
   statBlock: { flex: 1, borderRadius: 10, padding: 10, alignItems: 'center', backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft },
   statVal: { fontSize: 14, fontWeight: '700', color: d.text, fontFamily: MONO },

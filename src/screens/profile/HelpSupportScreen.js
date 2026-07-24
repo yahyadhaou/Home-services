@@ -15,7 +15,7 @@ const HelpSupportScreen = ({ navigation }) => {
   const [openFaq, setOpenFaq] = useState(null);
 
   const contactOptions = [
-    { icon: 'chatbubble-outline', label: t('helpSupport.liveChat'), action: () => navigation.navigate('MainTabs', { screen: 'Chat' }) },
+    { icon: 'chatbubble-outline', label: t('helpSupport.liveChat'), action: () => navigation.navigate('ChatThread', { provider: { name: 'HomeServices Support' } }) },
     { icon: 'mail-outline', label: t('helpSupport.email'), action: () => Linking.openURL('mailto:support@homeservices.app').catch(() => {}) },
     { icon: 'call-outline', label: t('helpSupport.callUs'), action: () => Linking.openURL('tel:080012345').catch(() => {}) },
   ];

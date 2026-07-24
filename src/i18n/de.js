@@ -97,9 +97,9 @@ export default {
     available: 'verfügbar',
     plumber: 'Klempner', electrician: 'Elektriker', cleaning: 'Reinigung',
     heating: 'Heizung', carpenter: 'Schreiner', painter: 'Maler',
-    gardener: 'Gärtner', moving: 'Umzug',
+    gardener: 'Gärtner', moving: 'Umzug', handyman: 'Handwerker', internet: 'Internettechniker',
     statusConfirmed: 'Bestätigt', statusCompleted: 'Abgeschlossen', statusPending: 'Ausstehend',
-    liveDispatch: 'Live-Einsatzübersicht', prosNearby: 'Fachkräfte in der Nähe', fastestMatch: 'Schnellste Vermittlung',
+    liveDispatch: 'Live-Einsatzübersicht', prosNearby: 'Fachkräfte in der Nähe', fastestMatch: 'Schnellste Vermittlung', you: 'Sie',
     recentJob: 'Letzter Auftrag', history: 'Verlauf', bookAgain: 'Erneut buchen',
   },
 
@@ -176,6 +176,22 @@ export default {
         { name: 'Lagerlösungen', icon: 'file-tray-full-outline' },
         { name: 'Klaviertransport', icon: 'musical-notes-outline' },
       ],
+      handyman: [
+        { name: 'Möbelmontage', icon: 'construct', urgent: true },
+        { name: 'Wandmontage', icon: 'grid-outline' },
+        { name: 'Kleine Reparaturen', icon: 'hammer-outline' },
+        { name: 'Vorhang- & Jalousienmontage', icon: 'apps-outline' },
+        { name: 'Tür- & Schlossreparatur', icon: 'key-outline' },
+        { name: 'Allgemeine Handwerksarbeiten', icon: 'briefcase-outline' },
+      ],
+      internet: [
+        { name: 'Kein Internetzugang', icon: 'wifi-outline', urgent: true },
+        { name: 'Router- & Modem-Einrichtung', icon: 'hardware-chip-outline' },
+        { name: 'WLAN-Abdeckung & Mesh', icon: 'grid-outline' },
+        { name: 'Netzwerkverkabelung', icon: 'git-network-outline' },
+        { name: 'Smart-Home-Vernetzung', icon: 'home-outline' },
+        { name: 'Geschwindigkeits- & Signaldiagnose', icon: 'speedometer-outline' },
+      ],
     },
     faqs: {
       plumber: [
@@ -210,6 +226,14 @@ export default {
         { q: 'Stellen Umzugsfirmen Verpackungsmaterial bereit?', a: 'Die meisten bieten Kartons, Klebeband und Schutzverpackung im Rahmen ihres Verpackungsservices an.' },
         { q: 'Wie weit im Voraus sollte ich buchen?', a: 'Wir empfehlen, mindestens 1-2 Wochen im Voraus zu buchen, besonders für Umzüge am Wochenende.' },
       ],
+      handyman: [
+        { q: 'Welche kleinen Arbeiten übernimmt ein Handwerker?', a: 'Möbelmontage, Regal- und TV-Montage, kleinere Reparaturen und andere Arbeiten, die kein spezialisiertes Gewerk erfordern.' },
+        { q: 'Muss ich Werkzeug oder Material bereitstellen?', a: 'Nein, unsere Handwerker bringen ihr eigenes Werkzeug mit. Kleinmaterial wie Schrauben ist meist inklusive; größere Teile können extra berechnet werden.' },
+      ],
+      internet: [
+        { q: 'Kann ein Techniker einen Router oder eine WLAN-Funklücke beheben?', a: 'Ja — die meisten Einsätze umfassen Router-Konfiguration, WLAN-Mesh-Installation und die Diagnose von schwachem Signal in einzelnen Räumen.' },
+        { q: 'Muss ich bereits Kunde meines Internetanbieters sein?', a: 'Nein, Techniker können jeden Router oder Anschluss einrichten oder prüfen und auch die Vernetzung von Smart-Home-Geräten übernehmen.' },
+      ],
     },
   },
 
@@ -218,6 +242,7 @@ export default {
     sortDistance: 'Entfernung', sortRating: 'Bewertung', sortPrice: 'Preis',
     results: 'Ergebnisse',
     responseTime: 'Antwortzeit', completedJobs: 'erledigte Aufträge',
+    company: 'Unternehmen', independent: 'Selbstständig', all: 'Alle', filterBy: 'Filtern nach', perHour: 'Std.',
   },
 
   // Provider Detail
@@ -239,6 +264,44 @@ export default {
     popularCategories: 'Beliebte Kategorien',
     resultsFor: 'Ergebnisse für',
     noResults: 'Keine Ergebnisse gefunden.',
+  },
+
+  relocation: {
+    title: 'Umzug', subtitle: 'Unternehmen oder Unabhängiger — passend zu Ihrem Umzug',
+    stepHomeTitle: 'Erzählen Sie uns von Ihrer Wohnung',
+    propertyType: 'Immobilientyp', apartment: 'Wohnung', house: 'Haus',
+    roomCount: 'Anzahl Zimmer', rooms: 'Zimmer',
+    floor: 'Etage', groundFloor: 'Erdgeschoss', floorShort: 'Etage',
+    hasElevator: 'Dieses Gebäude hat einen Aufzug',
+    noElevatorHint: 'Kein Aufzug in der {{floor}}. Etage — Tragekosten sind in der Schätzung enthalten.',
+    stepItemsTitle: 'Was möchten Sie umziehen?',
+    item_furniture: 'Möbel', item_boxes: 'Kartons', item_appliances: 'Elektrogeräte',
+    item_kitchen: 'Küche', item_heavy: 'Klavier / Schwergut', item_misc: 'Fahrrad / Sonstiges',
+    estimatedVolume: 'Geschätztes Volumen', volumeNote: 'Das bestimmt, welche Fahrzeuggröße für Ihren Umzug passt.',
+    tier_0: 'PKW', tier_1: 'Kleinbus', tier_2: 'Sprinter', tier_3: 'Möbelwagen',
+    stepRouteTitle: 'Wohin geht es?',
+    destination: 'Zielort',
+    city_essen: 'Essen (lokal)', city_muelheim: 'Mülheim a.d.R.', city_bochum: 'Bochum',
+    city_oberhausen: 'Oberhausen', city_duisburg: 'Duisburg', city_duesseldorf: 'Düsseldorf', city_dortmund: 'Dortmund',
+    stepMoverTitle: 'Wählen Sie Ihren Umzugshelfer',
+    companyOption: 'Umzugsunternehmen', companyDesc: 'Versichertes Team, Festpreis, Rundum-Service',
+    independentOption: 'Unabhängiger Helfer', independentDesc: 'Eigenes Fahrzeug, flexibel, günstig',
+    laborOption: 'Nur Helfer', laborDesc: 'Sie stellen den Transporter (eigener oder geliehener) — nur Arbeitskraft buchen',
+    bullet_insured: 'Gegen Schäden versichert', bullet_fixedPrice: 'Festpreis, keine Überraschungen', bullet_crew: '2-3 Personen Team inklusive',
+    bullet_cheaper: 'Meist günstiger', bullet_flexible: 'Flexible Terminwahl', bullet_ownCar: 'Bringt eigenes Fahrzeug mit',
+    bullet_cheapest: 'Günstigste Option', bullet_yourVan: 'Nutzt Ihr eigenes oder geliehenes Fahrzeug',
+    bullet_notInsured: 'Nicht über die Plattform versichert — Haftung wird direkt vereinbart',
+    helperCount: 'Anzahl Helfer', helpers: 'Helfer',
+    recommendHelpers: 'Empfehlung: {{count}} Helfer für dieses Volumen (weniger geht auch, dauert nur länger)',
+    matched: 'Passende Anbieter für Ihren Umzug', noMatch: 'Noch keine Übereinstimmung — versuchen Sie ein kleineres Volumen oder die andere Option.',
+    laborOnly: 'Nur Helfer (kein Fahrzeug)', mayNeedTrips: 'Kleineres Fahrzeug — evtl. mehrere Fahrten nötig',
+    continue: 'Weiter', pickHint: 'Wählen Sie oben einen Anbieter, um zur Buchung fortzufahren',
+  },
+
+  nearby: {
+    title: 'In der Nähe', subtitle: '{{count}} Fachkräfte gerade in Ihrer Nähe',
+    live: 'Live-Karte', tapPin: 'Tippen Sie auf einen Pin für eine Vorschau',
+    allNearby: 'Alle in der Nähe',
   },
 
   // Emergency Booking
@@ -270,6 +333,11 @@ export default {
     trackJob: 'Auftrag verfolgen',
   },
 
+  // Chat inbox
+  chatList: {
+    title: 'Nachrichten', search: 'Unterhaltungen durchsuchen…',
+  },
+
   // Chat
   chat: {
     online: 'Online', placeholder: 'Nachricht schreiben...', autoReply: 'Danke für Ihre Nachricht. Ich melde mich in Kürze.',
@@ -290,9 +358,11 @@ export default {
     days: ['So','Mo','Di','Mi','Do','Fr','Sa'],
     frequency: 'Wie oft?', freqOnce: 'Einmalig', freqWeekly: 'Wöchentlich', freqBiweekly: 'Alle 2 Wochen', freqMonthly: 'Monatlich',
     recurringHint: 'Sie erhalten 10% Rabatt auf Wiederholungsbuchungen und können jederzeit kündigen.',
-    estimate: 'Preisschätzung', calloutFee: 'Anfahrtspauschale', hourlyRate: 'Stundensatz',
-    recurringDiscount: 'Rabatt für Wiederholung', estimatedTotal: 'Geschätzter Gesamtbetrag',
+    estimate: 'Preisschätzung', calloutFee: 'Anfahrtspauschale', hourlyRate: 'Stundensatz', servicePrice: 'Leistungspreis',
+    recurringDiscount: 'Rabatt für Wiederholung', estimatedTotal: 'Gesamtbetrag',
+    serviceFee: 'Servicegebühr ({{rate}}%)',
     estimateNote: 'Der Endpreis kann je nach Umfang des Auftrags abweichen.',
+    vatNote: 'Preis inkl. MwSt. (19%). Der Endpreis kann je nach Umfang des Auftrags abweichen.',
   },
 
   // Booking Confirmation
@@ -334,7 +404,7 @@ export default {
     guest: 'Gast', bookings: 'Buchungen', favorites: 'Favoriten', rating: 'Bewertung',
     editProfile: 'Profil bearbeiten', myBookings: 'Meine Buchungen', paymentMethods: 'Zahlungsmethoden',
     notifications: 'Benachrichtigungen', settings: 'Einstellungen', logOut: 'Abmelden',
-    savedAddresses: 'Gespeicherte Adressen', helpSupport: 'Hilfe & Support',
+    savedAddresses: 'Gespeicherte Adressen', helpSupport: 'Hilfe & Support', messages: 'Nachrichten',
   },
 
   // Edit Profile
@@ -374,7 +444,7 @@ export default {
   notifications: {
     title: 'Benachrichtigungen', markAllRead: 'Alle als gelesen markieren', empty: 'Keine Benachrichtigungen',
     bookingConfirmedTitle: 'Buchung bestätigt', bookingConfirmedBody: 'Ihr Termin am 15.05. um 14:00 Uhr wurde bestätigt.',
-    reminderTitle: 'Termin morgen', reminderBody: 'Nicht vergessen: Müller GmbH kommt morgen um 14:00 Uhr.',
+    reminderTitle: 'Termin morgen', reminderBody: 'Nicht vergessen: Rüttenscheider Sanitärtechnik GmbH kommt morgen um 14:00 Uhr.',
     promoTitle: '20% Rabatt auf Reinigung', promoBody: 'Nur heute: Buchen Sie eine Reinigung und sparen Sie 20%.',
     reviewTitle: 'Bewertung abgeben', reviewBody: 'Wie war Ihr Termin mit Schmidt Sanitär?',
     systemTitle: 'App aktualisiert', systemBody: 'HomeServices wurde auf Version 1.1.0 aktualisiert.',
@@ -402,9 +472,10 @@ export default {
 
   // Live Tracking
   liveTracking: {
-    title: 'Live-Verfolgung', etaLabel: 'Voraussichtliche Ankunft', plumber: 'Klempner', status: 'Auftragsstatus',
-    step_matched: 'Fachkraft zugewiesen', step_enroute: 'Unterwegs', step_arriving: 'Kommt gleich an',
+    title: 'Live-Verfolgung', etaLabel: 'Voraussichtliche Ankunft', plumber: 'Klempner', status: 'Auftragsstatus', you: 'Sie',
+    step_pending: 'Warte auf Bestätigung', step_matched: 'Fachkraft zugewiesen', step_enroute: 'Unterwegs', step_arriving: 'Kommt gleich an',
     step_inprogress: 'Auftrag läuft', step_completed: 'Abgeschlossen',
+    waitingTitle: 'Warte auf Bestätigung', waitingSub: '{{name}} wurde benachrichtigt und prüft gerade Ihre Anfrage.',
     now: 'Jetzt', cancelJob: 'Auftrag stornieren',
     cancelTitle: 'Auftrag stornieren', cancelBody: 'Möchten Sie diesen Auftrag wirklich stornieren?', cancelConfirm: 'Auftrag stornieren',
   },
@@ -428,5 +499,45 @@ export default {
   common: {
     back: 'Zurück', cancel: 'Abbrechen', save: 'Speichern', delete: 'Löschen', edit: 'Bearbeiten',
     loading: 'Lädt…', error: 'Ein Fehler ist aufgetreten', retry: 'Erneut versuchen',
+  },
+
+  // Rechtliches — Platzhaltertext nur zur Vorschau der Oberfläche, nicht
+  // anwaltlich geprüft. Vor echtem Betrieb durch geprüften Text ersetzen
+  // (DSGVO, PAngV, Fernabsatzrecht).
+  legal: {
+    draftNotice: 'Platzhaltertext zur Vorschau — noch nicht anwaltlich geprüft. Nicht für den echten Start verwenden.',
+    terms: {
+      title: 'Allgemeine Geschäftsbedingungen',
+      updated: 'Zuletzt aktualisiert: Juli 2026',
+      sections: [
+        { heading: '1. Annahme dieser Bedingungen', body: 'Mit der Erstellung eines Kontos oder einer Buchung über HomeServices stimmen Sie diesen Nutzungsbedingungen und unserer Datenschutzerklärung zu. Wenn Sie nicht einverstanden sind, nutzen Sie die App bitte nicht.' },
+        { heading: '2. Was HomeServices ist', body: 'HomeServices ist eine Vermittlungsplattform, die Kunden mit selbstständigen Handwerkern, eingetragenen Dienstleistungsunternehmen und unabhängigen Umzugshelfern im Raum Essen/NRW verbindet. Wir beschäftigen keine Anbieter und führen selbst keine Klempner-, Elektro-, Reinigungs-, Umzugs- oder sonstigen gelisteten Leistungen aus.' },
+        { heading: '3. Konten', body: 'Sie müssen mindestens 18 Jahre alt sein und korrekte Kontakt- und Adressdaten angeben. Sie sind für die Sicherheit Ihrer Zugangsdaten und alle Aktivitäten unter Ihrem Konto verantwortlich.' },
+        { heading: '4. Buchungen, Preise & Gebühren', body: 'Der vor Bestätigung angezeigte Preis ist endgültig: Er enthält den Servicepreis des Anbieters, eine Plattformgebühr (derzeit 12 %) und die gesetzliche Mehrwertsteuer. Eine Stornierung weniger als 2 Stunden vor dem Termin kann eine Gebühr auslösen, die zum Zeitpunkt der Stornierung angezeigt wird.' },
+        { heading: '5. Ihr Verhältnis zu Anbietern', body: 'Unternehmen und selbstständige Anbieter werden in der App getrennt dargestellt, weil sie nicht dasselbe sind: Unternehmen verfügen über eine Betriebshaftpflichtversicherung und beschäftigen eigenes Personal; selbstständige Anbieter arbeiten auf eigene Rechnung. HomeServices ist nicht Vertragspartei des Dienstleistungsvertrags zwischen Ihnen und dem Anbieter.' },
+        { heading: '6. Zahlungen & Erstattungen', body: 'Zahlungen werden per SEPA oder Karte über unseren Zahlungsdienstleister abgewickelt. Wird eine Buchung vom Anbieter storniert oder die Leistung nicht wie gebucht erbracht, haben Sie Anspruch auf vollständige Erstattung des belasteten Betrags.' },
+        { heading: '7. Zulässige Nutzung', body: 'Sie verpflichten sich, die App nicht für betrügerische Buchungen zu nutzen, die Plattform nicht zu umgehen, um Gebühren zu vermeiden, und Anbieter oder andere Nutzer nicht zu belästigen.' },
+        { heading: '8. Haftung', body: 'HomeServices bemüht sich um die Vermittlung qualifizierter Anbieter, garantiert jedoch nicht die Qualität der ausgeführten Arbeiten. Unsere Haftung ist, soweit nach deutschem Recht zulässig, auf den Betrag der jeweiligen Buchung begrenzt. Ihre gesetzlichen Verbraucherrechte bleiben hiervon unberührt.' },
+        { heading: '9. Sperrung & Kündigung', body: 'Wir können ein Konto sperren oder schließen, das gegen diese Bedingungen verstößt, einschließlich betrügerischer Aktivitäten oder Missbrauchs gegenüber Anbietern oder dem Support.' },
+        { heading: '10. Anwendbares Recht', body: 'Diese Bedingungen unterliegen deutschem Recht. Zwingende verbraucherschützende Vorschriften Ihres Wohnsitzlandes bleiben als EU-Verbraucher unberührt.' },
+        { heading: '11. Änderungen dieser Bedingungen', body: 'Wir können diese Bedingungen gelegentlich aktualisieren. Über wesentliche Änderungen informieren wir Sie, bevor sie wirksam werden.' },
+      ],
+    },
+    privacy: {
+      title: 'Datenschutzerklärung',
+      updated: 'Zuletzt aktualisiert: Juli 2026',
+      sections: [
+        { heading: '1. Wer wir sind', body: 'HomeServices (Platzhalter-Rechtsform, Essen, Deutschland) ist der Verantwortliche für die in dieser Erklärung beschriebenen personenbezogenen Daten. Kontakt: privacy@homeservices.example (Platzhalter).' },
+        { heading: '2. Was wir erheben', body: 'Kontodaten (Name, E-Mail, Telefon), Ihre Adresse und Ihren Standort (zur Vermittlung nahegelegener Anbieter), Buchungshistorie sowie Nachrichten mit Anbietern innerhalb der App. Zahlungskartendaten werden direkt von unserem Zahlungsdienstleister verarbeitet — wir speichern keine vollständigen Kartennummern.' },
+        { heading: '3. Wie wir Ihre Daten verwenden', body: 'Zur Erstellung und Verwaltung Ihrer Buchungen, zur Vermittlung verfügbarer Anbieter, für buchungsbezogene Benachrichtigungen, zur Betrugsprävention und zur Erfüllung gesetzlicher Pflichten (z. B. Aufbewahrung von Rechnungen nach deutschem Steuerrecht).' },
+        { heading: '4. Rechtsgrundlage', body: 'Wir verarbeiten Ihre Daten zur Vertragserfüllung bei einer Buchung, aufgrund unseres berechtigten Interesses an einem sicheren Marktplatz sowie auf Basis Ihrer Einwilligung, soweit Sie Marketingmitteilungen zugestimmt haben.' },
+        { heading: '5. Weitergabe an Dritte', body: 'Bei einer Buchung erhält der vermittelte Anbieter die zur Auftragserfüllung nötigen Informationen (Name, Adresse, Telefonnummer, Auftragsdetails). Wir verkaufen Ihre Daten nicht an Werbetreibende.' },
+        { heading: '6. Speicherdauer', body: 'Kontodaten werden gespeichert, solange Ihr Konto aktiv ist; rechnungsbezogene Daten werden für den nach deutschem Steuerrecht vorgeschriebenen Zeitraum (derzeit bis zu 10 Jahre) auch nach Kontoschließung aufbewahrt.' },
+        { heading: '7. Ihre Rechte', body: 'Nach der DSGVO können Sie Auskunft, Berichtigung oder Löschung Ihrer Daten verlangen, die Einschränkung oder den Widerspruch gegen die Verarbeitung fordern und eine Kopie Ihrer Daten in einem übertragbaren Format verlangen. Sie können sich außerdem bei Ihrer zuständigen Aufsichtsbehörde beschweren (in NRW: Landesbeauftragte für Datenschutz und Informationsfreiheit).' },
+        { heading: '8. Cookies & Analyse', body: 'Die App verwendet funktionale Speicherung, die zur Anmeldung und zum Speichern Ihrer Einstellungen nötig ist. Jede darüber hinausgehende Analyse oder Nachverfolgung wird hier stets beschrieben, bevor sie aktiviert wird.' },
+        { heading: '9. Sicherheit', body: 'Daten werden bei der Übertragung verschlüsselt (TLS). Der interne Zugriff auf personenbezogene Daten ist auf das für den Betrieb Notwendige beschränkt.' },
+        { heading: '10. Kontakt', body: 'Bei Fragen zum Datenschutz oder zur Ausübung Ihrer Rechte kontaktieren Sie privacy@homeservices.example (Platzhalter) oder nutzen Sie Hilfe & Support in der App.' },
+      ],
+    },
   },
 };

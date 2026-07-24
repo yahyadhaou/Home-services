@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSearch } from '../../hooks';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
@@ -12,6 +13,7 @@ const SearchScreen = ({ navigation }) => {
   const { t } = useLanguage();
   const { colors } = useTheme();
   const d = colors.dispatch;
+  const insets = useSafeAreaInsets();
   const styles = createStyles(d);
   const [query, setQuery] = useState('');
   const { results, loading, search, clear } = useSearch();
@@ -30,7 +32,10 @@ const SearchScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={16} color={d.text} />
+        </TouchableOpacity>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={16} color={d.textSoft} />
           <TextInput
@@ -39,6 +44,7 @@ const SearchScreen = ({ navigation }) => {
             placeholderTextColor={d.textSoft}
             value={query}
             onChangeText={handleChange}
+            autoFocus
           />
           {query.length > 0 ? (
             <TouchableOpacity onPress={handleClear}><Ionicons name="close-circle" size={18} color={d.textSoft} /></TouchableOpacity>
@@ -108,8 +114,9 @@ const SearchScreen = ({ navigation }) => {
 
 const createStyles = (d) => StyleSheet.create({
   container: { flex: 1, backgroundColor: d.canvas },
-  header: { paddingTop: 56, paddingBottom: 12, paddingHorizontal: 18, backgroundColor: d.canvas, borderBottomWidth: 1, borderBottomColor: d.lineSoft },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 10, paddingHorizontal: 12, gap: 8 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 12, paddingHorizontal: 18, backgroundColor: d.canvas, borderBottomWidth: 1, borderBottomColor: d.lineSoft },
+  backBtn: { width: 30, height: 30, borderRadius: 8, borderWidth: 1, borderColor: d.lineSoft, alignItems: 'center', justifyContent: 'center' },
+  searchBar: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 10, paddingHorizontal: 12, gap: 8 },
   input: { flex: 1, paddingVertical: 10, fontSize: 14, color: d.text },
   content: { padding: 18 },
   section: { marginBottom: 22 },

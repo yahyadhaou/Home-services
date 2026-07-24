@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Header } from '../../components/common';
+import { Header, LegalModal } from '../../components/common';
 import { useLanguage, LANGUAGE_OPTIONS } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
 
@@ -16,6 +16,7 @@ const SettingsScreen = ({ navigation }) => {
     locationServices: true, biometricLogin: true, marketingEmails: false,
   });
   const [langModalOpen, setLangModalOpen] = useState(false);
+  const [legalDoc, setLegalDoc] = useState(null); // null | 'terms' | 'privacy'
   const toggle = (key) => setSettings((p) => ({ ...p, [key]: !p[key] }));
 
   const currentLanguageLabel = LANGUAGE_OPTIONS.find((opt) => opt.code === language)?.native || 'English';
@@ -45,12 +46,12 @@ const SettingsScreen = ({ navigation }) => {
         <Section title={t('settings.notificationsSection')}>
           <ToggleRow icon="notifications-outline" label={t('settings.push')} value={settings.pushNotifications} onValueChange={() => toggle('pushNotifications')} />
           <ToggleRow icon="mail-outline" label={t('settings.emailNotif')} value={settings.emailNotifications} onValueChange={() => toggle('emailNotifications')} />
-          <ToggleRow icon="chatbubble-outline" label={t('settings.sms')} value={settings.smsNotifications} onValueChange={() => toggle('smsNotifications')} isLast />
+          {/* <ToggleRow icon="chatbubble-outline" label={t('settings.sms')} value={settings.smsNotifications} onValueChange={() => toggle('smsNotifications')} isLast /> */}
         </Section>
 
         <Section title={t('settings.privacySection')}>
           <ToggleRow icon="location-outline" label={t('settings.location')} value={settings.locationServices} onValueChange={() => toggle('locationServices')} />
-          <ToggleRow icon="finger-print-outline" label={t('settings.biometric')} value={settings.biometricLogin} onValueChange={() => toggle('biometricLogin')} isLast />
+          {/* <ToggleRow icon="finger-print-outline" label={t('settings.biometric')} value={settings.biometricLogin} onValueChange={() => toggle('biometricLogin')} isLast /> */}
         </Section>
 
         <Section title={t('settings.appearanceSection')}>
@@ -63,15 +64,15 @@ const SettingsScreen = ({ navigation }) => {
 
         <Section title={t('settings.generalSection')}>
           <LinkRow icon="help-circle-outline" label={t('settings.help')} onPress={() => navigation.navigate('HelpSupport')} />
-          <LinkRow icon="document-text-outline" label={t('settings.privacyPolicy')} onPress={() => {}} />
-          <LinkRow icon="shield-outline" label={t('settings.terms')} onPress={() => {}} isLast />
+          <LinkRow icon="document-text-outline" label={t('settings.privacyPolicy')} onPress={() => setLegalDoc('privacy')} />
+          <LinkRow icon="shield-outline" label={t('settings.terms')} onPress={() => setLegalDoc('terms')} isLast />
         </Section>
 
         <Section title={t('settings.marketingSection')}>
           <ToggleRow icon="megaphone-outline" label={t('settings.marketingEmails')} value={settings.marketingEmails} onValueChange={() => toggle('marketingEmails')} isLast />
         </Section>
 
-        <Text style={styles.version}>{t('settings.version')}  ·  © 2025</Text>
+        <Text style={styles.version}>{t('settings.version')}  ·  © 2026</Text>
       </ScrollView>
 
       <Modal visible={langModalOpen} transparent animationType="fade" onRequestClose={() => setLangModalOpen(false)}>
@@ -99,6 +100,8 @@ const SettingsScreen = ({ navigation }) => {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      <LegalModal visible={!!legalDoc} doc={legalDoc} onClose={() => setLegalDoc(null)} />
     </View>
   );
 };

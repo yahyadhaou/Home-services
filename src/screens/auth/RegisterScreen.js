@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Input } from '../../components/common';
+import { Button, Input, LegalModal } from '../../components/common';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
@@ -19,6 +19,7 @@ const RegisterScreen = ({ navigation }) => {
   const [errors, setErrors]   = useState({});
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed]   = useState(false);
+  const [legalDoc, setLegalDoc] = useState(null); // null | 'terms' | 'privacy'
 
   const set = (key) => (val) => setForm((p) => ({ ...p, [key]: val }));
 
@@ -64,7 +65,7 @@ const RegisterScreen = ({ navigation }) => {
             {agreed ? <Ionicons name="checkmark" size={13} color={d.canvas} /> : null}
           </View>
           <Text style={styles.checkText}>
-            {t('register.agreeTerms')}<Text style={styles.link}>{t('register.termsLink')}</Text>{t('register.and')}<Text style={styles.link}>{t('register.privacyLink')}</Text>
+            {t('register.agreeTerms')}<Text style={styles.link} onPress={() => setLegalDoc('terms')}>{t('register.termsLink')}</Text>{t('register.and')}<Text style={styles.link} onPress={() => setLegalDoc('privacy')}>{t('register.privacyLink')}</Text>
           </Text>
         </TouchableOpacity>
         {errors.terms ? <Text style={styles.errorText}>{errors.terms}</Text> : null}
@@ -78,6 +79,8 @@ const RegisterScreen = ({ navigation }) => {
           <TouchableOpacity onPress={() => navigation.navigate('Login')}><Text style={styles.loginLink}>{t('register.signIn')}</Text></TouchableOpacity>
         </View>
       </ScrollView>
+
+      <LegalModal visible={!!legalDoc} doc={legalDoc} onClose={() => setLegalDoc(null)} />
     </KeyboardAvoidingView>
   );
 };

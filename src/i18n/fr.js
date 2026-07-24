@@ -91,9 +91,9 @@ export default {
     available: 'disponibles',
     plumber: 'Plombier', electrician: 'Électricien', cleaning: 'Ménage',
     heating: 'Chauffage', carpenter: 'Menuisier', painter: 'Peintre',
-    gardener: 'Jardinier', moving: 'Déménagement',
+    gardener: 'Jardinier', moving: 'Déménagement', handyman: 'Bricoleur', internet: 'Technicien Internet',
     statusConfirmed: 'Confirmée', statusCompleted: 'Terminée', statusPending: 'En attente',
-    liveDispatch: 'Répartition en direct', prosNearby: 'Pros à proximité', fastestMatch: 'Match le plus rapide',
+    liveDispatch: 'Répartition en direct', prosNearby: 'Pros à proximité', fastestMatch: 'Match le plus rapide', you: 'Vous',
     recentJob: 'Dernière mission', history: 'Historique', bookAgain: 'Réserver à nouveau',
   },
 
@@ -169,6 +169,22 @@ export default {
         { name: 'Solutions de stockage', icon: 'file-tray-full-outline' },
         { name: 'Déménagement de piano', icon: 'musical-notes-outline' },
       ],
+      handyman: [
+        { name: 'Montage de meubles', icon: 'construct', urgent: true },
+        { name: 'Fixation murale', icon: 'grid-outline' },
+        { name: 'Petites réparations', icon: 'hammer-outline' },
+        { name: 'Pose de rideaux et stores', icon: 'apps-outline' },
+        { name: 'Réparation porte et serrure', icon: 'key-outline' },
+        { name: 'Petits travaux divers', icon: 'briefcase-outline' },
+      ],
+      internet: [
+        { name: "Pas d'accès Internet", icon: 'wifi-outline', urgent: true },
+        { name: 'Configuration routeur et modem', icon: 'hardware-chip-outline' },
+        { name: 'Couverture Wi-Fi et mesh', icon: 'grid-outline' },
+        { name: 'Câblage réseau', icon: 'git-network-outline' },
+        { name: 'Réseau maison connectée', icon: 'home-outline' },
+        { name: 'Diagnostic vitesse et signal', icon: 'speedometer-outline' },
+      ],
     },
     faqs: {
       plumber: [
@@ -203,6 +219,14 @@ export default {
         { q: "Les déménageurs fournissent-ils l'emballage ?", a: "La plupart proposent cartons, ruban adhésif et protections dans le cadre de leur service d'emballage." },
         { q: "Combien de temps à l'avance réserver ?", a: "Nous recommandons de réserver au moins 1 à 2 semaines à l'avance, surtout pour les week-ends." },
       ],
+      handyman: [
+        { q: 'Quels petits travaux un bricoleur peut-il faire ?', a: "Montage de meubles, fixation d'étagères ou de TV, petites réparations et autres travaux ne nécessitant pas un artisan spécialisé." },
+        { q: 'Dois-je fournir les outils ou le matériel ?', a: "Non, nos bricoleurs apportent leurs propres outils. Le petit matériel comme les vis est généralement inclus ; les pièces plus importantes peuvent être facturées en plus." },
+      ],
+      internet: [
+        { q: 'Un technicien peut-il réparer un routeur ou une zone sans Wi-Fi ?', a: 'Oui — la plupart des interventions couvrent la configuration du routeur, l’installation d’un mesh Wi-Fi et le diagnostic d’un signal faible dans certaines pièces.' },
+        { q: "Dois-je déjà être client de mon fournisseur d'accès ?", a: "Non, les techniciens peuvent configurer ou dépanner n'importe quel routeur ou connexion, et câbler également les appareils domotiques." },
+      ],
     },
   },
 
@@ -210,6 +234,7 @@ export default {
     sortDistance: 'Distance', sortRating: 'Note', sortPrice: 'Prix',
     results: 'résultats',
     responseTime: 'temps de réponse', completedJobs: 'missions effectuées',
+    company: 'Entreprise', independent: 'Indépendant', all: 'Tous', filterBy: 'Filtrer par', perHour: 'heure',
   },
 
   providerDetail: {
@@ -229,6 +254,44 @@ export default {
     popularCategories: 'Catégories populaires',
     resultsFor: 'résultats pour',
     noResults: 'Aucun résultat trouvé.',
+  },
+
+  relocation: {
+    title: 'Déménagement', subtitle: 'Entreprise ou indépendant — adapté à votre déménagement',
+    stepHomeTitle: 'Parlez-nous de votre logement',
+    propertyType: 'Type de logement', apartment: 'Appartement', house: 'Maison',
+    roomCount: 'Nombre de pièces', rooms: 'pièce',
+    floor: 'Étage', groundFloor: 'Rez-de-chaussée', floorShort: 'étage',
+    hasElevator: 'Ce bâtiment a un ascenseur',
+    noElevatorHint: "Pas d'ascenseur au {{floor}}e étage — les frais de portage sont inclus dans l'estimation.",
+    stepItemsTitle: 'Que déménagez-vous ?',
+    item_furniture: 'Meubles', item_boxes: 'Cartons', item_appliances: 'Électroménager',
+    item_kitchen: 'Cuisine', item_heavy: 'Piano / objets lourds', item_misc: 'Vélo / divers',
+    estimatedVolume: 'Volume estimé', volumeNote: 'Cela détermine la taille de véhicule adaptée à votre déménagement.',
+    tier_0: 'Voiture', tier_1: 'Fourgonnette', tier_2: 'Sprinter', tier_3: 'Camion de déménagement',
+    stepRouteTitle: 'Vers où ?',
+    destination: 'Destination',
+    city_essen: 'Essen (local)', city_muelheim: 'Mülheim a.d.R.', city_bochum: 'Bochum',
+    city_oberhausen: 'Oberhausen', city_duisburg: 'Duisbourg', city_duesseldorf: 'Düsseldorf', city_dortmund: 'Dortmund',
+    stepMoverTitle: 'Choisissez votre déménageur',
+    companyOption: 'Entreprise de déménagement', companyDesc: 'Équipe assurée, prix fixe, service complet',
+    independentOption: 'Aide indépendante', independentDesc: 'Véhicule propre, flexible, économique',
+    laborOption: 'Main-d\'œuvre seule', laborDesc: 'Vous fournissez le véhicule (le vôtre ou celui d\'un ami) — ne réservez que la main-d\'œuvre',
+    bullet_insured: 'Assuré contre les dommages', bullet_fixedPrice: 'Prix fixe, sans surprise', bullet_crew: 'Équipe de 2-3 personnes incluse',
+    bullet_cheaper: 'Généralement moins cher', bullet_flexible: 'Horaires flexibles', bullet_ownCar: 'Apporte son propre véhicule',
+    bullet_cheapest: 'Option la moins chère', bullet_yourVan: 'Utilise votre véhicule ou un véhicule emprunté',
+    bullet_notInsured: 'Non assuré via la plateforme — responsabilité à convenir directement',
+    helperCount: 'Nombre d\'aides', helpers: 'aide(s)',
+    recommendHelpers: 'Recommandé : {{count}} aides pour ce volume (moins fonctionne aussi, juste plus lent)',
+    matched: 'Correspondances pour votre déménagement', noMatch: 'Aucune correspondance — essayez un volume plus petit ou l\'autre option.',
+    laborOnly: 'Aide seule (sans véhicule)', mayNeedTrips: 'Véhicule plus petit — plusieurs trajets possibles',
+    continue: 'Continuer', pickHint: 'Choisissez une correspondance ci-dessus pour continuer la réservation',
+  },
+
+  nearby: {
+    title: 'À proximité', subtitle: '{{count}} pros près de chez vous en ce moment',
+    live: 'Carte en direct', tapPin: 'Touchez un repère pour un aperçu',
+    allNearby: 'Tous à proximité',
   },
 
   emergency: {
@@ -259,6 +322,10 @@ export default {
     trackJob: 'Suivre la mission',
   },
 
+  chatList: {
+    title: 'Messages', search: 'Rechercher des conversations…',
+  },
+
   chat: {
     online: 'En ligne', placeholder: 'Écrire un message...', autoReply: 'Merci pour votre message. Je vous réponds rapidement.',
     sampleMsg1: 'Bonjour ! Comment puis-je vous aider ?',
@@ -277,9 +344,11 @@ export default {
     days: ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'],
     frequency: 'À quelle fréquence ?', freqOnce: 'Une fois', freqWeekly: 'Hebdomadaire', freqBiweekly: 'Toutes les 2 semaines', freqMonthly: 'Mensuel',
     recurringHint: 'Vous bénéficiez de 10% de réduction récurrente et pouvez annuler à tout moment.',
-    estimate: 'Estimation du prix', calloutFee: 'Frais de déplacement', hourlyRate: 'Taux horaire',
-    recurringDiscount: 'Réduction récurrente', estimatedTotal: 'Total estimé',
+    estimate: 'Estimation du prix', calloutFee: 'Frais de déplacement', hourlyRate: 'Taux horaire', servicePrice: 'Prix du service',
+    recurringDiscount: 'Réduction récurrente', estimatedTotal: 'Total',
+    serviceFee: 'Frais de service ({{rate}}%)',
     estimateNote: 'Le prix final peut varier selon la complexité de la mission.',
+    vatNote: 'Prix TVA incluse (19%). Le prix final peut varier selon la complexité de la mission.',
   },
 
   bookingConfirmation: {
@@ -317,7 +386,7 @@ export default {
     guest: 'Invité', bookings: 'Réservations', favorites: 'Favoris', rating: 'Note',
     editProfile: 'Modifier le profil', myBookings: 'Mes réservations', paymentMethods: 'Moyens de paiement',
     notifications: 'Notifications', settings: 'Paramètres', logOut: 'Se déconnecter',
-    savedAddresses: 'Adresses enregistrées', helpSupport: 'Aide et assistance',
+    savedAddresses: 'Adresses enregistrées', helpSupport: 'Aide et assistance', messages: 'Messages',
   },
 
   editProfile: {
@@ -353,7 +422,7 @@ export default {
   notifications: {
     title: 'Notifications', markAllRead: 'Tout marquer comme lu', empty: 'Aucune notification',
     bookingConfirmedTitle: 'Réservation confirmée', bookingConfirmedBody: 'Votre rendez-vous du 15/05 à 14h00 a été confirmé.',
-    reminderTitle: 'Rendez-vous demain', reminderBody: "N'oubliez pas : Müller GmbH arrive demain à 14h.",
+    reminderTitle: 'Rendez-vous demain', reminderBody: "N'oubliez pas : Rüttenscheider Sanitärtechnik GmbH arrive demain à 14h.",
     promoTitle: '20% de réduction sur le ménage', promoBody: "Aujourd'hui seulement : réservez un service de ménage et économisez 20%.",
     reviewTitle: 'Laisser un avis', reviewBody: 'Comment s\'est passé votre rendez-vous avec Schmidt Sanitär ?',
     systemTitle: 'Application mise à jour', systemBody: 'HomeServices a été mis à jour vers la version 1.1.0.',
@@ -378,9 +447,10 @@ export default {
   },
 
   liveTracking: {
-    title: 'Suivi en direct', etaLabel: "Arrivée estimée", plumber: 'Plombier', status: 'Statut de la mission',
-    step_matched: 'Pro assigné', step_enroute: 'En route', step_arriving: 'Arrivée imminente',
+    title: 'Suivi en direct', etaLabel: "Arrivée estimée", plumber: 'Plombier', status: 'Statut de la mission', you: 'Vous',
+    step_pending: 'En attente de confirmation', step_matched: 'Pro assigné', step_enroute: 'En route', step_arriving: 'Arrivée imminente',
     step_inprogress: 'Mission en cours', step_completed: 'Terminée',
+    waitingTitle: 'En attente de confirmation', waitingSub: '{{name}} a été averti et examine votre demande.',
     now: 'Maintenant', cancelJob: 'Annuler la mission',
     cancelTitle: 'Annuler la mission', cancelBody: 'Voulez-vous vraiment annuler cette mission ?', cancelConfirm: 'Annuler la mission',
   },
@@ -401,5 +471,45 @@ export default {
   common: {
     back: 'Retour', cancel: 'Annuler', save: 'Enregistrer', delete: 'Supprimer', edit: 'Modifier',
     loading: 'Chargement…', error: 'Une erreur est survenue', retry: 'Réessayer',
+  },
+
+  // Mentions légales — texte provisoire pour l'aperçu de l'interface
+  // uniquement, non relu par un juriste. À remplacer par un texte vérifié
+  // (RGPD, PAngV, droit de la vente à distance) avant tout lancement réel.
+  legal: {
+    draftNotice: "Texte provisoire pour l'aperçu — non encore relu par un juriste. Ne pas utiliser tel quel pour un lancement réel.",
+    terms: {
+      title: 'Conditions Générales d’Utilisation',
+      updated: 'Dernière mise à jour : juillet 2026',
+      sections: [
+        { heading: '1. Acceptation des présentes conditions', body: 'En créant un compte ou en réservant un service via HomeServices, vous acceptez les présentes Conditions Générales d’Utilisation ainsi que notre Politique de confidentialité. Si vous n’êtes pas d’accord, veuillez ne pas utiliser l’application.' },
+        { heading: '2. Ce qu’est HomeServices', body: 'HomeServices est une place de marché qui met en relation des clients avec des artisans indépendants, des entreprises de services enregistrées et des déménageurs indépendants dans la région d’Essen/NRW. Nous n’employons aucun prestataire et n’exécutons nous-mêmes aucune prestation de plomberie, électricité, ménage, déménagement ou autre service listé.' },
+        { heading: '3. Comptes', body: 'Vous devez avoir au moins 18 ans et fournir des coordonnées et une adresse exactes. Vous êtes responsable de la sécurité de vos identifiants et de toute activité sur votre compte.' },
+        { heading: '4. Réservations, prix et frais', body: 'Le prix affiché avant confirmation est définitif : il inclut le prix du service fixé par le prestataire, des frais de plateforme (actuellement 12 %) et la TVA légale. Une annulation moins de 2 heures avant le rendez-vous peut entraîner des frais, affichés au moment de l’annulation.' },
+        { heading: '5. Votre relation avec les prestataires', body: 'Les entreprises et les prestataires indépendants sont présentés séparément dans l’application car ils ne sont pas identiques : les entreprises disposent d’une assurance professionnelle et emploient leur propre personnel ; les prestataires indépendants travaillent à leur compte. HomeServices n’est pas partie au contrat de service entre vous et le prestataire.' },
+        { heading: '6. Paiements et remboursements', body: 'Les paiements sont traités par SEPA ou carte via notre prestataire de paiement. Si une réservation est annulée par le prestataire, ou si le service n’est pas rendu comme prévu, vous avez droit à un remboursement intégral du montant facturé.' },
+        { heading: '7. Utilisation acceptable', body: 'Vous vous engagez à ne pas utiliser l’application pour des réservations frauduleuses, à ne pas contourner la plateforme pour éviter les frais, et à ne pas harceler les prestataires ou les autres utilisateurs.' },
+        { heading: '8. Responsabilité', body: 'HomeServices met tout en œuvre pour vous mettre en relation avec des prestataires qualifiés, mais ne garantit pas la qualité des travaux effectués. Notre responsabilité, dans la mesure permise par le droit allemand, est limitée au montant payé pour la réservation concernée. Vos droits légaux de consommateur restent inchangés.' },
+        { heading: '9. Suspension et résiliation', body: 'Nous pouvons suspendre ou clôturer un compte qui enfreint ces conditions, y compris en cas d’activité frauduleuse ou d’abus envers les prestataires ou le support.' },
+        { heading: '10. Droit applicable', body: 'Les présentes conditions sont régies par le droit allemand. Les règles impératives de protection des consommateurs de votre pays de résidence, si vous êtes consommateur au sein de l’UE, restent inchangées.' },
+        { heading: '11. Modifications des présentes conditions', body: 'Nous pouvons mettre à jour ces conditions de temps à autre. Nous vous informerons de tout changement important avant son entrée en vigueur.' },
+      ],
+    },
+    privacy: {
+      title: 'Politique de Confidentialité',
+      updated: 'Dernière mise à jour : juillet 2026',
+      sections: [
+        { heading: '1. Qui nous sommes', body: 'HomeServices (forme juridique provisoire, Essen, Allemagne) est le responsable du traitement des données personnelles décrites dans cette politique. Contact : privacy@homeservices.example (provisoire).' },
+        { heading: '2. Ce que nous collectons', body: 'Les informations de compte (nom, e-mail, téléphone), votre adresse et votre position (pour vous mettre en relation avec des prestataires proches), l’historique de vos réservations et les messages échangés avec les prestataires dans l’application. Les données de carte bancaire sont traitées directement par notre prestataire de paiement — nous ne stockons pas les numéros de carte complets.' },
+        { heading: '3. Comment nous utilisons vos données', body: 'Pour créer et gérer vos réservations, vous mettre en relation avec des prestataires disponibles, envoyer des notifications liées aux réservations, prévenir la fraude, et respecter nos obligations légales (par exemple la conservation des factures selon le droit fiscal allemand).' },
+        { heading: '4. Base légale', body: 'Nous traitons vos données pour exécuter le contrat lors d’une réservation, sur la base de notre intérêt légitime à faire fonctionner une place de marché sûre, et sur la base de votre consentement lorsque vous avez accepté de recevoir des communications marketing.' },
+        { heading: '5. Partage avec des tiers', body: 'Lors d’une réservation, le prestataire mis en relation reçoit les informations nécessaires à la réalisation de la mission (nom, adresse, numéro de téléphone, détails de la mission). Nous ne vendons pas vos données à des annonceurs.' },
+        { heading: '6. Durée de conservation', body: 'Les données de compte sont conservées tant que votre compte est actif ; les données liées à la facturation sont conservées pendant la durée exigée par le droit fiscal allemand (actuellement jusqu’à 10 ans), même après la fermeture du compte.' },
+        { heading: '7. Vos droits', body: 'En vertu du RGPD, vous pouvez demander l’accès à vos données, leur rectification ou leur suppression, demander la limitation ou vous opposer au traitement, et demander une copie de vos données dans un format portable. Vous pouvez également déposer une réclamation auprès de votre autorité de contrôle régionale (en NRW : Landesbeauftragte für Datenschutz und Informationsfreiheit).' },
+        { heading: '8. Cookies et analyse', body: 'L’application utilise un stockage fonctionnel nécessaire pour vous garder connecté et mémoriser vos préférences. Toute analyse ou suivi allant au-delà sera toujours décrit ici avant d’être activé.' },
+        { heading: '9. Sécurité', body: 'Les données sont chiffrées en transit (TLS). L’accès interne aux données personnelles est limité à ce qui est nécessaire au fonctionnement du service.' },
+        { heading: '10. Contact', body: 'Pour toute question relative à la confidentialité ou pour exercer vos droits, contactez privacy@homeservices.example (provisoire) ou utilisez Aide & Support dans l’application.' },
+      ],
+    },
   },
 };

@@ -16,7 +16,8 @@ const SERVICE_META = {
   carpenter:   { icon: 'hammer-outline',        code: '05/CRP' },
   painter:     { icon: 'color-palette-outline', code: '06/PNT' },
   gardener:    { icon: 'leaf-outline',          code: '07/GRD' },
-  moving:      { icon: 'car-outline',           code: '08/MOV' },
+  internet:    { icon: 'wifi-outline',          code: '08/NET' },
+  handyman:    { icon: 'construct-outline',      code: '09/HDW' },
 };
 
 const resolveServiceCode = (displayName, t) => {
