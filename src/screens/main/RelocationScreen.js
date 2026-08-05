@@ -30,6 +30,9 @@ const ROUTE_OPTIONS = [
   { key: 'duisburg',  km: 21 },
   { key: 'duesseldorf', km: 31 },
   { key: 'dortmund',  km: 36 },
+  { key: 'hamburg',   km: 290, longDistance: true },
+  { key: 'berlin',    km: 490, longDistance: true },
+  { key: 'bayern',    km: 610, longDistance: true },
 ];
 
 const TIERS = [
@@ -69,7 +72,18 @@ const RelocationScreen = ({ navigation }) => {
   const totalVol = baseVol + itemsVol;
   const floorPenalty = !elevator ? floor * 2 : 0;
   const tierIdx = tierIndexFor(totalVol);
-  const km = ROUTE_OPTIONS.find((r) => r.key === toCity)?.km || 8;
+  const selectedRoute = ROUTE_OPTIONS.find((r) => r.key === toCity);
+  const km = selectedRoute?.km || 8;
+  const isLongDistance = !!selectedRoute?.longDistance;
+
+  // Long-distance moves are company-only by default — an independent can
+  // still take the job, but only if they actually own a van/truck suited to
+  // a multi-hour highway move (longHaulCapable), never the "bring your own
+  // van" labor-only mode, since that would mean the customer driving the
+  // vehicle themselves for hundreds of km.
+  useEffect(() => {
+    if (isLongDistance && moverType === 'labor') setMoverType(null);
+  }, [isLongDistance, moverType]);
 
   const recommendedHelpers = Math.max(1, Math.min(3, Math.ceil(totalVol / 16)));
   const estimatedHours = Math.max(2, Math.ceil(totalVol / (8 * helperCount)));
@@ -98,7 +112,7 @@ const RelocationScreen = ({ navigation }) => {
   const barWidth = barAnim.interpolate({ inputRange: [0, 1], outputRange: ['4%', '100%'] });
 
   const companies = providers.filter((p) => p.providerType === 'company');
-  const independents = providers.filter((p) => p.providerType === 'independent');
+  const independents = providers.filter((p) => p.providerType === 'independent' && (!isLongDistance || p.longHaulCapable));
   const matched = moverType === 'company' ? companies : moverType ? independents : [];
 
   const STEPS = ['home', 'items', 'route', 'mover'];
@@ -132,6 +146,11 @@ const RelocationScreen = ({ navigation }) => {
         {step === 0 ? (
           <View>
             <Text style={styles.stepTitle}>{t('relocation.stepHomeTitle')}</Text>
+
+            <View style={styles.tipBanner}>
+              <Ionicons name="bulb-outline" size={15} color={d.amber} />
+              <Text style={styles.tipBannerText}>{t('relocation.tip')}</Text>
+            </View>
 
             <Text style={styles.label}>{t('relocation.propertyType').toUpperCase()}</Text>
             <View style={styles.rowChips}>
@@ -236,6 +255,13 @@ const RelocationScreen = ({ navigation }) => {
           <View>
             <Text style={styles.stepTitle}>{t('relocation.stepMoverTitle')}</Text>
 
+            {isLongDistance ? (
+              <View style={styles.longDistanceBanner}>
+                <Ionicons name="information-circle-outline" size={16} color={d.amber} />
+                <Text style={styles.longDistanceBannerText}>{t('relocation.longDistanceBanner', { km })}</Text>
+              </View>
+            ) : null}
+
             <TouchableOpacity style={[styles.moverCard, moverType === 'company' && styles.moverCardActive]} onPress={() => setMoverType('company')} activeOpacity={0.85}>
               <View style={styles.moverHead}>
                 <Ionicons name="business-outline" size={22} color={d.line} />
@@ -269,21 +295,32 @@ const RelocationScreen = ({ navigation }) => {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.moverCard, moverType === 'labor' && styles.moverCardActive]} onPress={() => setMoverType('labor')} activeOpacity={0.85}>
+            <TouchableOpacity
+              style={[styles.moverCard, moverType === 'labor' && styles.moverCardActive, isLongDistance && styles.moverCardDisabled]}
+              onPress={() => !isLongDistance && setMoverType('labor')}
+              activeOpacity={isLongDistance ? 1 : 0.85}
+              disabled={isLongDistance}
+            >
               <View style={styles.moverHead}>
-                <Ionicons name="people-outline" size={22} color={d.line} />
+                <Ionicons name="people-outline" size={22} color={isLongDistance ? d.textSoft : d.line} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.moverName}>{t('relocation.laborOption')}</Text>
                   <Text style={styles.moverSub}>{t('relocation.laborDesc')}</Text>
                 </View>
-                <Text style={styles.moverPrice}>€{laborDisplay.total}</Text>
+                {!isLongDistance ? <Text style={styles.moverPrice}>€{laborDisplay.total}</Text> : null}
               </View>
-              <View style={styles.moverBullets}>
-                {['cheapest', 'yourVan'].map((k) => (
-                  <View key={k} style={styles.bulletRow}><Ionicons name="checkmark-circle" size={13} color={d.green} /><Text style={styles.bulletText}>{t(`relocation.bullet_${k}`)}</Text></View>
-                ))}
-                <View style={styles.bulletRow}><Ionicons name="alert-circle-outline" size={13} color={d.amber} /><Text style={[styles.bulletText, { color: d.amber }]}>{t('relocation.bullet_notInsured')}</Text></View>
-              </View>
+              {isLongDistance ? (
+                <View style={styles.moverBullets}>
+                  <View style={styles.bulletRow}><Ionicons name="close-circle-outline" size={13} color={d.textSoft} /><Text style={[styles.bulletText, { color: d.textSoft }]}>{t('relocation.laborUnavailableLongDistance')}</Text></View>
+                </View>
+              ) : (
+                <View style={styles.moverBullets}>
+                  {['cheapest', 'yourVan'].map((k) => (
+                    <View key={k} style={styles.bulletRow}><Ionicons name="checkmark-circle" size={13} color={d.green} /><Text style={styles.bulletText}>{t(`relocation.bullet_${k}`)}</Text></View>
+                  ))}
+                  <View style={styles.bulletRow}><Ionicons name="alert-circle-outline" size={13} color={d.amber} /><Text style={[styles.bulletText, { color: d.amber }]}>{t('relocation.bullet_notInsured')}</Text></View>
+                </View>
+              )}
             </TouchableOpacity>
 
             {(moverType === 'independent' || moverType === 'labor') ? (
@@ -401,8 +438,14 @@ const createStyles = (d) => StyleSheet.create({
   routeDash: { height: 1, width: '100%' },
   routeKm: { fontSize: 12, fontWeight: '700', color: d.amber, fontFamily: MONO },
 
+  longDistanceBanner: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: `${d.amber}1F`, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 12, padding: 12, marginBottom: 14 },
+  longDistanceBannerText: { flex: 1, fontSize: 11.5, color: d.amber, lineHeight: 16 },
+  tipBanner: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 12, padding: 12, marginBottom: 16 },
+  tipBannerText: { flex: 1, fontSize: 11.5, color: d.textSoft, lineHeight: 16 },
+
   moverCard: { backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 14, padding: 14, marginBottom: 12 },
   moverCardActive: { borderColor: d.line },
+  moverCardDisabled: { opacity: 0.55 },
   moverHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   moverName: { fontSize: 14, fontWeight: '700', color: d.text },
   moverSub: { fontSize: 11, color: d.textSoft, marginTop: 1 },

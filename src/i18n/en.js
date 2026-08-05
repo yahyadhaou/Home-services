@@ -111,6 +111,7 @@ export default {
     faq: 'Frequently Asked Questions',
     viewProviders: 'View Available Professionals',
     emergency: 'Emergency',
+    tipsTitle: 'Good to know',
     subServices: {
       plumber: [
         { name: 'Drain Unblocking', icon: 'water', urgent: true },
@@ -235,6 +236,44 @@ export default {
         { q: 'Do I need to be with my internet provider already?', a: 'No, technicians can set up or troubleshoot any router or ISP connection, and also wire networking for smart home devices.' },
       ],
     },
+    tips: {
+      plumber: [
+        'Turn off the water at the main valve before the visit if you already see active leaking — it limits damage while you wait.',
+        'If the job runs longer than the estimated visit, the provider can request extra time — you choose to pay it in the app or in cash.',
+      ],
+      electrician: [
+        'Note which breaker trips and when — it helps the electrician diagnose the issue faster and can shorten the visit.',
+        'Never attempt to work on exposed wiring yourself before the electrician arrives.',
+      ],
+      cleaning: [
+        'Point out fragile or valuable items before the cleaner starts, especially for a first visit.',
+        'Recurring bookings with the same cleaner tend to go faster once they know your home.',
+      ],
+      heating: [
+        'Photograph your boiler\'s display/error code beforehand — it speeds up diagnosis a lot.',
+        'Annual maintenance visits are usually shorter and cheaper than emergency call-outs.',
+      ],
+      carpenter: [
+        'Have the exact measurements or a photo of the space ready for custom furniture quotes.',
+        'Ask for a fixed price upfront on larger builds rather than a pure hourly rate.',
+      ],
+      painter: [
+        'Empty or cover furniture in the room beforehand — many providers charge extra for moving heavy items.',
+        'Ask about drying time between coats if you need the room usable again quickly.',
+      ],
+      gardener: [
+        'Recurring visits (weekly/biweekly) are usually cheaper per visit than one-off bookings.',
+        'Mention any pets or play areas so the gardener can plan around them.',
+      ],
+      handyman: [
+        'Bundle several small jobs into one visit — most handymen charge a call-out fee regardless of how many tasks you add.',
+        'Have any flat-pack instructions or hardware on hand for assembly jobs.',
+      ],
+      internet: [
+        'Note which rooms have weak signal before the visit — it helps the technician plan mesh point placement.',
+        'Have your router login/admin password ready if you know it — it can save setup time.',
+      ],
+    },
   },
 
   // Provider List
@@ -270,6 +309,7 @@ export default {
   relocation: {
     title: 'Relocation', subtitle: 'Company or independent — matched to your move',
     stepHomeTitle: "Tell us about your home",
+    tip: 'For long-distance moves (e.g. to Bavaria, Berlin, or Hamburg) we recommend a moving company for a reliable experience — independents can still take it if they have their own suitable van or truck.',
     propertyType: 'Property type', apartment: 'Apartment', house: 'House',
     roomCount: 'Number of rooms', rooms: 'room',
     floor: 'Floor', groundFloor: 'Ground floor', floorShort: 'floor',
@@ -284,7 +324,10 @@ export default {
     destination: 'Destination',
     city_essen: 'Essen (local)', city_muelheim: 'Mülheim a.d.R.', city_bochum: 'Bochum',
     city_oberhausen: 'Oberhausen', city_duisburg: 'Duisburg', city_duesseldorf: 'Düsseldorf', city_dortmund: 'Dortmund',
+    city_hamburg: 'Hamburg', city_berlin: 'Berlin', city_bayern: 'Bayern (München)',
     stepMoverTitle: 'Choose your mover',
+    longDistanceBanner: 'Long-distance move ({{km}} km) — for a reliable move over this distance we recommend a moving company. An independent can still take it, but only with their own suitable van or truck.',
+    laborUnavailableLongDistance: 'Not available for long-distance moves — this would mean driving the vehicle yourself over a long distance.',
     companyOption: 'Moving company', companyDesc: 'Insured team, fixed price, full-service',
     independentOption: 'Independent helper', independentDesc: "Own vehicle, flexible, budget-friendly",
     laborOption: 'Helpers only', laborDesc: 'You provide the van (yours or a friend\'s) — just hire the muscle',
@@ -365,6 +408,7 @@ export default {
     serviceFee: 'Service fee ({{rate}}%)',
     estimateNote: 'Final price may vary based on job complexity.',
     vatNote: 'Price includes VAT (19%). Final price may vary based on job complexity.',
+    overtimeNote: 'This covers the standard visit. If the job takes longer than estimated, the provider can request extra time — you choose to pay that in the app or settle it directly with them.',
   },
 
   // Booking Confirmation
@@ -399,6 +443,12 @@ export default {
     trackLive: 'Track live', jobProof: 'Job completion proof', verified: 'Verified',
     before: 'Before', after: 'After',
     checklist1: 'Work area inspected', checklist2: 'Repair completed and tested', checklist3: 'Site cleaned up',
+    extensionTitle: 'Provider requested more time',
+    extraTime: 'Extra time', extraServicePrice: 'Extra service price', extraServiceFee: 'Extra service fee ({{rate}}%)', newTotal: 'New total',
+    extensionChoiceHint: 'Choose how to pay for the extra time.',
+    payViaApp: 'Pay €{{amount}} in the app', payCash: 'Pay €{{amount}} in cash to provider',
+    extensionSettledApp: 'Extra time settled in the app — €{{amount}} added to your total.',
+    extensionSettledCash: 'Extra time settled directly with the provider — €{{amount}} paid in cash (not through the app, no platform fee).',
   },
 
   // Profile
@@ -431,7 +481,8 @@ export default {
   // Add Payment
   addPayment: {
     title: 'Add Payment Method', selectType: 'Select Payment Type',
-    card: 'Credit/Debit Card', sepa: 'SEPA Direct Debit', paypal: 'PayPal',
+    card: 'Credit/Debit Card', sepa: 'SEPA Direct Debit', paypal: 'PayPal', applePay: 'Apple Pay',
+    comingSoon: 'Coming soon', applePayNote: 'Apple Pay is on our roadmap and will appear here once available — you can already save a card or SEPA account today.',
     cardData: 'Card Details', cardHolder: 'Card Holder', cardHolderPlaceholder: 'John Smith',
     cardNumber: 'Card Number', expiry: 'Expiry Date', cvv: 'CVV',
     sepaData: 'SEPA Details', accountHolder: 'Account Holder', iban: 'IBAN',

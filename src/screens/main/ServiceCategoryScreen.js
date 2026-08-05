@@ -40,6 +40,7 @@ const ServiceCategoryScreen = ({ navigation, route }) => {
 
   const subServices = t(`serviceCategory.subServices.${serviceCode}`) || [];
   const faqs = t(`serviceCategory.faqs.${serviceCode}`) || [];
+  const tips = t(`serviceCategory.tips.${serviceCode}`) || [];
 
   return (
     <View style={styles.container}>
@@ -84,6 +85,20 @@ const ServiceCategoryScreen = ({ navigation, route }) => {
           </View>
         </View>
 
+        {tips.length > 0 ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('serviceCategory.tipsTitle')}</Text>
+            <View style={styles.tipsCard}>
+              {tips.map((tip, i) => (
+                <View key={i} style={[styles.tipRow, i < tips.length - 1 && styles.tipRowBorder]}>
+                  <Ionicons name="bulb-outline" size={16} color={d.amber} />
+                  <Text style={styles.tipText}>{tip}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('serviceCategory.faq')}</Text>
           {faqs.map((faq, i) => (
@@ -126,6 +141,10 @@ const createStyles = (d) => StyleSheet.create({
   subName: { fontSize: 12.5, fontWeight: '600', color: d.text, marginTop: 8 },
   urgentBadge: { backgroundColor: d.dangerSoft, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 6 },
   urgentText: { fontSize: 9, fontWeight: '700', color: d.danger, fontFamily: MONO },
+  tipsCard: { backgroundColor: d.panel, borderRadius: 12, borderWidth: 1, borderColor: d.lineSoft, padding: 4 },
+  tipRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 12 },
+  tipRowBorder: { borderBottomWidth: 1, borderBottomColor: d.lineSoft },
+  tipText: { flex: 1, fontSize: 12.5, color: d.textSoft, lineHeight: 18 },
   faqCard: { backgroundColor: d.panel, borderRadius: 10, borderWidth: 1, borderColor: d.lineSoft, padding: 13, marginBottom: 8 },
   faqHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   faqQ: { flex: 1, fontSize: 13, fontWeight: '600', color: d.text },

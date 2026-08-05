@@ -21,6 +21,10 @@ const AddPaymentScreen = ({ navigation }) => {
     { key: 'sepa',   label: t('addPayment.sepa'),   icon: 'business-outline'    },
     { key: 'paypal', label: t('addPayment.paypal'), icon: 'logo-paypal' },
   ];
+  // Apple Pay needs a native merchant integration (Apple Developer merchant
+  // ID + domain verification) that a mock RN/web app can't actually provide —
+  // shown as a visible, clearly-labeled upcoming option rather than faked.
+  const APPLE_PAY = { key: 'applepay', label: t('addPayment.applePay'), icon: 'logo-apple' };
 
   const validate = () => {
     const e = {};
@@ -47,6 +51,11 @@ const AddPaymentScreen = ({ navigation }) => {
               <Text style={[styles.typeLabel, type === opt.key && styles.typeLabelActive]}>{opt.label}</Text>
             </TouchableOpacity>
           ))}
+          <View style={[styles.typeCard, styles.typeCardDisabled]}>
+            <Ionicons name={APPLE_PAY.icon} size={22} color={d.textSoft} />
+            <Text style={styles.typeLabel}>{APPLE_PAY.label}</Text>
+            <View style={styles.soonBadge}><Text style={styles.soonBadgeText}>{t('addPayment.comingSoon').toUpperCase()}</Text></View>
+          </View>
         </View>
 
         {type === 'card' ? (
@@ -91,9 +100,12 @@ const createStyles = (d) => StyleSheet.create({
   container: { flex: 1, backgroundColor: d.canvas },
   content: { padding: 18, paddingBottom: 40 },
   sectionTitle: { fontSize: 13, fontWeight: '700', color: d.text, marginBottom: 12, marginTop: 10 },
-  typePicker: { flexDirection: 'row', gap: 8, marginBottom: 20 },
-  typeCard: { flex: 1, backgroundColor: d.panel, borderRadius: 12, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: d.lineSoft },
+  typePicker: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
+  typeCard: { flexBasis: '22%', flexGrow: 1, backgroundColor: d.panel, borderRadius: 12, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: d.lineSoft },
   typeCardActive: { backgroundColor: d.line, borderColor: d.line },
+  typeCardDisabled: { opacity: 0.55, position: 'relative' },
+  soonBadge: { position: 'absolute', top: -8, alignSelf: 'center', backgroundColor: d.amber, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
+  soonBadgeText: { fontSize: 7.5, fontWeight: '700', color: d.canvas, letterSpacing: 0.3 },
   typeLabel: { fontSize: 10.5, fontWeight: '600', color: d.textSoft, marginTop: 6, textAlign: 'center' },
   typeLabelActive: { color: d.canvas },
   row: { flexDirection: 'row', gap: 8 },

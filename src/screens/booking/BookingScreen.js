@@ -48,6 +48,9 @@ const BookingScreen = ({ navigation, route }) => {
   const prevMonth = () => { if (month === 0) { setMonth(11); setYear((y) => y - 1); } else setMonth((m) => m - 1); setSelDay(null); };
   const nextMonth = () => { if (month === 11) { setMonth(0); setYear((y) => y + 1); } else setMonth((m) => m + 1); setSelDay(null); };
 
+  const isToday = selDay === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+  const isPastSlot = (slot) => isToday && parseInt(slot.split(':')[0], 10) <= today.getHours();
+
   const canContinue = selDay !== null && selTime !== '';
   const formatDate = () => (selDay ? `${String(selDay).padStart(2, '0')}.${String(month + 1).padStart(2, '0')}.${year}` : '');
 
@@ -120,7 +123,7 @@ const BookingScreen = ({ navigation, route }) => {
                     <TouchableOpacity
                       key={i}
                       style={[styles.calCell, cellDay === null && styles.calCellEmpty, isSel && styles.calCellSelected, isToday && !isSel && styles.calCellToday]}
-                      onPress={() => cellDay && !isPast && setSelDay(cellDay)}
+                      onPress={() => { if (cellDay && !isPast) { setSelDay(cellDay); setSelTime(''); } }}
                       disabled={!cellDay || isPast}
                       activeOpacity={0.7}
                     >
@@ -137,11 +140,19 @@ const BookingScreen = ({ navigation, route }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('booking.selectTime')}</Text>
             <View style={styles.timeGrid}>
-              {TIME_SLOTS.map((slot) => (
-                <TouchableOpacity key={slot} style={[styles.timeSlot, selTime === slot && styles.timeSlotActive]} onPress={() => setSelTime(slot)}>
-                  <Text style={[styles.timeText, selTime === slot && styles.timeTextActive]}>{slot}</Text>
-                </TouchableOpacity>
-              ))}
+              {TIME_SLOTS.map((slot) => {
+                const disabled = isPastSlot(slot);
+                return (
+                  <TouchableOpacity
+                    key={slot}
+                    style={[styles.timeSlot, selTime === slot && styles.timeSlotActive, disabled && styles.timeSlotDisabled]}
+                    onPress={() => !disabled && setSelTime(slot)}
+                    disabled={disabled}
+                  >
+                    <Text style={[styles.timeText, selTime === slot && styles.timeTextActive, disabled && styles.timeTextDisabled]}>{slot}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         ) : null}
@@ -178,6 +189,7 @@ const BookingScreen = ({ navigation, route }) => {
             <View style={styles.ticketDivider} />
             <View style={styles.ticketRow}><Text style={styles.ticketTotalLabel}>{t('booking.estimatedTotal')}</Text><Text style={styles.ticketTotalValue}>€{estimatedTotal}</Text></View>
             <Text style={styles.ticketNote}>{t('booking.vatNote')}</Text>
+            <Text style={styles.ticketNote}>{t('booking.overtimeNote')}</Text>
           </View>
         </View>
       </ScrollView>
@@ -232,8 +244,10 @@ const createStyles = (d) => StyleSheet.create({
   timeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   timeSlot: { paddingVertical: 9, paddingHorizontal: 14, borderRadius: 8, backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft },
   timeSlotActive: { backgroundColor: d.line, borderColor: d.line },
+  timeSlotDisabled: { opacity: 0.35 },
   timeText: { fontSize: 12.5, fontWeight: '600', color: d.text, fontFamily: MONO },
   timeTextActive: { color: d.canvas },
+  timeTextDisabled: { color: d.textSoft },
   freqRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   freqChip: { paddingVertical: 9, paddingHorizontal: 14, borderRadius: 20, backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft },
   freqChipActive: { backgroundColor: d.line, borderColor: d.line },

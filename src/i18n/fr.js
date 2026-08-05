@@ -104,6 +104,7 @@ export default {
     faq: 'Questions fréquentes',
     viewProviders: 'Voir les professionnels disponibles',
     emergency: 'Urgence',
+    tipsTitle: 'Bon à savoir',
     subServices: {
       plumber: [
         { name: 'Débouchage de canalisation', icon: 'water', urgent: true },
@@ -228,6 +229,44 @@ export default {
         { q: "Dois-je déjà être client de mon fournisseur d'accès ?", a: "Non, les techniciens peuvent configurer ou dépanner n'importe quel routeur ou connexion, et câbler également les appareils domotiques." },
       ],
     },
+    tips: {
+      plumber: [
+        "Coupez l'eau au robinet principal avant la visite s'il y a déjà une fuite active — cela limite les dégâts en attendant.",
+        "Si la mission dure plus longtemps que prévu, le prestataire peut demander un supplément — vous choisissez de payer dans l'app ou en espèces.",
+      ],
+      electrician: [
+        'Notez quel disjoncteur saute et à quel moment — cela aide l’électricien à diagnostiquer plus vite et peut raccourcir la visite.',
+        "Ne touchez jamais à des fils électriques apparents avant l'arrivée de l'électricien.",
+      ],
+      cleaning: [
+        'Signalez les objets fragiles ou de valeur avant que le prestataire ne commence, surtout lors d’une première visite.',
+        'Les réservations récurrentes avec le même prestataire sont souvent plus rapides une fois qu’il connaît votre logement.',
+      ],
+      heating: [
+        "Prenez en photo l'écran ou le code erreur de votre chaudière au préalable — cela accélère beaucoup le diagnostic.",
+        "L'entretien annuel est généralement plus court et moins cher qu'une intervention d'urgence.",
+      ],
+      carpenter: [
+        'Ayez les mesures exactes ou une photo de l’espace pour les devis de meubles sur mesure.',
+        'Demandez un prix fixe pour les gros travaux plutôt qu’un simple tarif horaire.',
+      ],
+      painter: [
+        'Videz ou couvrez les meubles de la pièce au préalable — beaucoup de prestataires facturent en plus le déplacement d’objets lourds.',
+        'Demandez le temps de séchage entre les couches si vous devez réutiliser la pièce rapidement.',
+      ],
+      gardener: [
+        'Les visites récurrentes (hebdomadaires/bimensuelles) sont généralement moins chères par visite qu’une réservation unique.',
+        'Mentionnez la présence d’animaux ou d’espaces de jeu pour que le jardinier en tienne compte.',
+      ],
+      handyman: [
+        'Regroupez plusieurs petites tâches en une seule visite — la plupart des bricoleurs facturent un forfait de déplacement quoi qu’il arrive.',
+        'Gardez les notices de montage ou la visserie à portée de main pour les travaux d’assemblage.',
+      ],
+      internet: [
+        'Notez quelles pièces ont un signal faible avant la visite — cela aide le technicien à planifier l’emplacement des bornes mesh.',
+        'Ayez votre mot de passe administrateur du routeur si vous le connaissez — cela peut faire gagner du temps.',
+      ],
+    },
   },
 
   providerList: {
@@ -259,6 +298,7 @@ export default {
   relocation: {
     title: 'Déménagement', subtitle: 'Entreprise ou indépendant — adapté à votre déménagement',
     stepHomeTitle: 'Parlez-nous de votre logement',
+    tip: 'Pour les déménagements longue distance (par ex. vers la Bavière, Berlin ou Hambourg), nous recommandons une entreprise pour une expérience fiable — un indépendant peut tout de même s’en charger s’il possède son propre camion ou fourgon adapté.',
     propertyType: 'Type de logement', apartment: 'Appartement', house: 'Maison',
     roomCount: 'Nombre de pièces', rooms: 'pièce',
     floor: 'Étage', groundFloor: 'Rez-de-chaussée', floorShort: 'étage',
@@ -273,7 +313,10 @@ export default {
     destination: 'Destination',
     city_essen: 'Essen (local)', city_muelheim: 'Mülheim a.d.R.', city_bochum: 'Bochum',
     city_oberhausen: 'Oberhausen', city_duisburg: 'Duisbourg', city_duesseldorf: 'Düsseldorf', city_dortmund: 'Dortmund',
+    city_hamburg: 'Hambourg', city_berlin: 'Berlin', city_bayern: 'Bavière (Munich)',
     stepMoverTitle: 'Choisissez votre déménageur',
+    longDistanceBanner: 'Déménagement longue distance ({{km}} km) — pour un déménagement fiable sur cette distance, nous recommandons une entreprise. Un indépendant peut tout de même s’en charger, mais uniquement avec son propre camion ou fourgon adapté.',
+    laborUnavailableLongDistance: "Non disponible pour les déménagements longue distance — cela impliquerait de conduire vous-même le véhicule sur une longue distance.",
     companyOption: 'Entreprise de déménagement', companyDesc: 'Équipe assurée, prix fixe, service complet',
     independentOption: 'Aide indépendante', independentDesc: 'Véhicule propre, flexible, économique',
     laborOption: 'Main-d\'œuvre seule', laborDesc: 'Vous fournissez le véhicule (le vôtre ou celui d\'un ami) — ne réservez que la main-d\'œuvre',
@@ -349,6 +392,7 @@ export default {
     serviceFee: 'Frais de service ({{rate}}%)',
     estimateNote: 'Le prix final peut varier selon la complexité de la mission.',
     vatNote: 'Prix TVA incluse (19%). Le prix final peut varier selon la complexité de la mission.',
+    overtimeNote: "Ceci couvre l'intervention standard. Si la mission prend plus de temps que prévu, le prestataire peut demander un supplément — vous choisissez de le payer dans l'app ou de régler directement avec lui.",
   },
 
   bookingConfirmation: {
@@ -380,6 +424,12 @@ export default {
     trackLive: 'Suivre en direct', jobProof: 'Preuve de fin de mission', verified: 'Vérifié',
     before: 'Avant', after: 'Après',
     checklist1: 'Zone de travail inspectée', checklist2: 'Réparation terminée et testée', checklist3: 'Lieu nettoyé',
+    extensionTitle: 'Le prestataire a demandé plus de temps',
+    extraTime: 'Temps supplémentaire', extraServicePrice: 'Prix supplémentaire', extraServiceFee: 'Frais supplémentaires ({{rate}}%)', newTotal: 'Nouveau total',
+    extensionChoiceHint: 'Choisissez comment payer le temps supplémentaire.',
+    payViaApp: 'Payer {{amount}} € dans l’app', payCash: 'Payer {{amount}} € en espèces au prestataire',
+    extensionSettledApp: 'Temps supplémentaire réglé dans l’app — {{amount}} € ajoutés à votre total.',
+    extensionSettledCash: 'Temps supplémentaire réglé directement avec le prestataire — {{amount}} € payés en espèces (hors app, sans frais de plateforme).',
   },
 
   profile: {
@@ -408,7 +458,8 @@ export default {
 
   addPayment: {
     title: 'Ajouter un moyen de paiement', selectType: 'Choisir le type de paiement',
-    card: 'Carte bancaire', sepa: 'Prélèvement SEPA', paypal: 'PayPal',
+    card: 'Carte bancaire', sepa: 'Prélèvement SEPA', paypal: 'PayPal', applePay: 'Apple Pay',
+    comingSoon: 'Bientôt disponible', applePayNote: "Apple Pay est prévu pour bientôt et apparaîtra ici dès qu'il sera disponible — vous pouvez déjà enregistrer une carte ou un compte SEPA.",
     cardData: 'Informations de la carte', cardHolder: 'Titulaire de la carte', cardHolderPlaceholder: 'Jean Dupont',
     cardNumber: 'Numéro de carte', expiry: "Date d'expiration", cvv: 'CVV',
     sepaData: 'Informations SEPA', accountHolder: 'Titulaire du compte', iban: 'IBAN',

@@ -111,6 +111,7 @@ export default {
     faq: 'Häufig gestellte Fragen',
     viewProviders: 'Verfügbare Fachkräfte anzeigen',
     emergency: 'Notfall',
+    tipsTitle: 'Gut zu wissen',
     subServices: {
       plumber: [
         { name: 'Rohrverstopfung', icon: 'water', urgent: true },
@@ -235,6 +236,44 @@ export default {
         { q: 'Muss ich bereits Kunde meines Internetanbieters sein?', a: 'Nein, Techniker können jeden Router oder Anschluss einrichten oder prüfen und auch die Vernetzung von Smart-Home-Geräten übernehmen.' },
       ],
     },
+    tips: {
+      plumber: [
+        'Drehen Sie bei einem aktiven Leck vor dem Termin das Hauptventil zu — das begrenzt den Schaden, bis die Fachkraft eintrifft.',
+        'Dauert der Auftrag länger als geschätzt, kann der Anbieter zusätzliche Zeit anfragen — Sie entscheiden, ob Sie in der App oder bar bezahlen.',
+      ],
+      electrician: [
+        'Notieren Sie, welche Sicherung wann auslöst — das hilft dem Elektriker bei der Diagnose und kann den Einsatz verkürzen.',
+        'Arbeiten Sie niemals selbst an freiliegenden Kabeln, bevor die Fachkraft eintrifft.',
+      ],
+      cleaning: [
+        'Weisen Sie vor Beginn auf zerbrechliche oder wertvolle Gegenstände hin, besonders beim ersten Termin.',
+        'Wiederkehrende Buchungen mit derselben Reinigungskraft gehen meist schneller, sobald sie Ihre Wohnung kennt.',
+      ],
+      heating: [
+        'Fotografieren Sie vorab die Anzeige/Fehlermeldung Ihres Heizkessels — das beschleunigt die Diagnose erheblich.',
+        'Jährliche Wartungstermine sind meist kürzer und günstiger als Notfalleinsätze.',
+      ],
+      carpenter: [
+        'Halten Sie genaue Maße oder ein Foto des Raums für Angebote zu Maßanfertigungen bereit.',
+        'Fragen Sie bei größeren Projekten nach einem Festpreis statt einem reinen Stundensatz.',
+      ],
+      painter: [
+        'Räumen oder decken Sie Möbel im Raum vorher ab — viele Anbieter berechnen für das Verschieben schwerer Gegenstände extra.',
+        'Fragen Sie nach der Trocknungszeit zwischen den Anstrichen, wenn Sie den Raum bald wieder nutzen möchten.',
+      ],
+      gardener: [
+        'Wiederkehrende Termine (wöchentlich/zweiwöchentlich) sind pro Besuch meist günstiger als Einzelbuchungen.',
+        'Erwähnen Sie Haustiere oder Spielbereiche, damit der Gärtner darauf Rücksicht nehmen kann.',
+      ],
+      handyman: [
+        'Bündeln Sie mehrere kleine Aufgaben in einem Termin — die meisten Handwerker berechnen ohnehin eine Anfahrtspauschale.',
+        'Halten Sie Aufbauanleitungen oder Beschläge für Montagearbeiten bereit.',
+      ],
+      internet: [
+        'Notieren Sie vor dem Termin, in welchen Räumen das Signal schwach ist — das hilft bei der Planung der Mesh-Punkte.',
+        'Halten Sie, falls bekannt, Ihre Router-Zugangsdaten bereit — das spart Zeit bei der Einrichtung.',
+      ],
+    },
   },
 
   // Provider List
@@ -269,6 +308,7 @@ export default {
   relocation: {
     title: 'Umzug', subtitle: 'Unternehmen oder Unabhängiger — passend zu Ihrem Umzug',
     stepHomeTitle: 'Erzählen Sie uns von Ihrer Wohnung',
+    tip: 'Für Fernumzüge (z. B. nach Bayern, Berlin oder Hamburg) empfehlen wir für ein zuverlässiges Erlebnis ein Umzugsunternehmen — Selbstständige können den Auftrag trotzdem übernehmen, wenn sie einen eigenen geeigneten Transporter oder LKW haben.',
     propertyType: 'Immobilientyp', apartment: 'Wohnung', house: 'Haus',
     roomCount: 'Anzahl Zimmer', rooms: 'Zimmer',
     floor: 'Etage', groundFloor: 'Erdgeschoss', floorShort: 'Etage',
@@ -283,7 +323,10 @@ export default {
     destination: 'Zielort',
     city_essen: 'Essen (lokal)', city_muelheim: 'Mülheim a.d.R.', city_bochum: 'Bochum',
     city_oberhausen: 'Oberhausen', city_duisburg: 'Duisburg', city_duesseldorf: 'Düsseldorf', city_dortmund: 'Dortmund',
+    city_hamburg: 'Hamburg', city_berlin: 'Berlin', city_bayern: 'Bayern (München)',
     stepMoverTitle: 'Wählen Sie Ihren Umzugshelfer',
+    longDistanceBanner: 'Fernumzug ({{km}} km) — für eine zuverlässige Durchführung über diese Distanz empfehlen wir ein Umzugsunternehmen. Ein selbstständiger Anbieter kann den Auftrag trotzdem übernehmen, aber nur mit einem eigenen geeigneten Transporter oder LKW.',
+    laborUnavailableLongDistance: 'Für Fernumzüge nicht verfügbar — hierfür müssten Sie das Fahrzeug selbst über eine lange Strecke fahren.',
     companyOption: 'Umzugsunternehmen', companyDesc: 'Versichertes Team, Festpreis, Rundum-Service',
     independentOption: 'Unabhängiger Helfer', independentDesc: 'Eigenes Fahrzeug, flexibel, günstig',
     laborOption: 'Nur Helfer', laborDesc: 'Sie stellen den Transporter (eigener oder geliehener) — nur Arbeitskraft buchen',
@@ -363,6 +406,7 @@ export default {
     serviceFee: 'Servicegebühr ({{rate}}%)',
     estimateNote: 'Der Endpreis kann je nach Umfang des Auftrags abweichen.',
     vatNote: 'Preis inkl. MwSt. (19%). Der Endpreis kann je nach Umfang des Auftrags abweichen.',
+    overtimeNote: 'Dies deckt den Standardeinsatz ab. Dauert der Auftrag länger als geschätzt, kann der Anbieter zusätzliche Zeit anfragen — Sie entscheiden, ob Sie das in der App bezahlen oder direkt mit dem Anbieter abrechnen.',
   },
 
   // Booking Confirmation
@@ -397,6 +441,12 @@ export default {
     trackLive: 'Live verfolgen', jobProof: 'Nachweis der Fertigstellung', verified: 'Bestätigt',
     before: 'Vorher', after: 'Nachher',
     checklist1: 'Arbeitsbereich geprüft', checklist2: 'Reparatur abgeschlossen und getestet', checklist3: 'Arbeitsplatz gereinigt',
+    extensionTitle: 'Anbieter hat mehr Zeit angefragt',
+    extraTime: 'Zusätzliche Zeit', extraServicePrice: 'Zusätzlicher Servicepreis', extraServiceFee: 'Zusätzliche Servicegebühr ({{rate}}%)', newTotal: 'Neue Gesamtsumme',
+    extensionChoiceHint: 'Wählen Sie, wie Sie die zusätzliche Zeit bezahlen möchten.',
+    payViaApp: '€{{amount}} in der App bezahlen', payCash: '€{{amount}} bar an den Anbieter bezahlen',
+    extensionSettledApp: 'Zusätzliche Zeit in der App abgerechnet — €{{amount}} zu Ihrer Gesamtsumme hinzugefügt.',
+    extensionSettledCash: 'Zusätzliche Zeit direkt mit dem Anbieter abgerechnet — €{{amount}} bar bezahlt (nicht über die App, keine Plattformgebühr).',
   },
 
   // Profile
@@ -429,7 +479,8 @@ export default {
   // Add Payment
   addPayment: {
     title: 'Zahlungsmethode hinzufügen', selectType: 'Zahlungsart auswählen',
-    card: 'Kredit-/Debitkarte', sepa: 'SEPA-Lastschrift', paypal: 'PayPal',
+    card: 'Kredit-/Debitkarte', sepa: 'SEPA-Lastschrift', paypal: 'PayPal', applePay: 'Apple Pay',
+    comingSoon: 'Demnächst', applePayNote: 'Apple Pay ist für die Zukunft geplant und erscheint hier, sobald verfügbar — Sie können schon jetzt eine Karte oder ein SEPA-Konto hinterlegen.',
     cardData: 'Kartendaten', cardHolder: 'Karteninhaber', cardHolderPlaceholder: 'Max Mustermann',
     cardNumber: 'Kartennummer', expiry: 'Ablaufdatum', cvv: 'CVV',
     sepaData: 'SEPA-Daten', accountHolder: 'Kontoinhaber', iban: 'IBAN',

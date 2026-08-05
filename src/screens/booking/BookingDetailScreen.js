@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Header } from '../../components/common';
+import { withServiceFee, SERVICE_FEE_RATE } from '../../constants/pricing';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
@@ -15,6 +16,21 @@ const BookingDetailScreen = ({ navigation, route }) => {
   const d = colors.dispatch;
   const styles = createStyles(d);
   const booking = route.params?.booking || {};
+
+  // Extension requests are how a provider flags that a job ran past its
+  // estimate — the customer picks whether the extra time is paid through the
+  // app (platform fee applies, same as the original booking) or settled
+  // directly with the provider in cash (provider keeps 100%, no fee).
+  const [resolution, setResolution] = useState(booking.extensionResolution || null);
+  const extension = booking.extensionRequest;
+  const hasOpenExtension = !!extension && !resolution;
+  const extraFeeInfo = withServiceFee(extension?.extraPrice || 0);
+  const newTotal = (booking.total || 0) + extraFeeInfo.total;
+
+  const resolveExtension = (choice) => {
+    setResolution(choice);
+    if (booking.id) updateBooking(booking.id, { extensionResolution: choice, ...(choice === 'app' ? { total: newTotal } : {}) });
+  };
 
   const STATUS = {
     upcoming:  { label: t('myBookings.statusUpcoming'),  color: d.line   },
@@ -53,9 +69,39 @@ const BookingDetailScreen = ({ navigation, route }) => {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t('bookingDetail.paymentTitle')}</Text>
-          <DetailRow d={d} icon="cash-outline" label={t('bookingDetail.amount')}        value={booking.total ? `€${booking.total}` : '€120'} />
+          <DetailRow d={d} icon="cash-outline" label={t('bookingDetail.amount')}        value={`€${resolution === 'app' ? newTotal : (booking.total || 120)}`} />
           <DetailRow d={d} icon="card-outline" label={t('bookingDetail.paymentMethod')} value={t('bookingDetail.sepaDebit')} last />
         </View>
+
+        {hasOpenExtension ? (
+          <View style={[styles.card, styles.extensionCard]}>
+            <View style={styles.extensionHeadRow}>
+              <Ionicons name="time-outline" size={18} color={d.amber} />
+              <Text style={styles.extensionTitle}>{t('bookingDetail.extensionTitle')}</Text>
+            </View>
+            {extension.note ? <Text style={styles.extensionNote}>{extension.note}</Text> : null}
+            <DetailRow d={d} icon="hourglass-outline" label={t('bookingDetail.extraTime')} value={`+${extension.extraHours}h`} />
+            <DetailRow d={d} icon="pricetag-outline" label={t('bookingDetail.extraServicePrice')} value={`€${extension.extraPrice}`} />
+            <DetailRow d={d} icon="add-circle-outline" label={t('bookingDetail.extraServiceFee', { rate: Math.round(SERVICE_FEE_RATE * 100) })} value={`€${extraFeeInfo.fee}`} />
+            <DetailRow d={d} icon="calculator-outline" label={t('bookingDetail.newTotal')} value={`€${newTotal}`} last />
+            <Text style={styles.extensionHint}>{t('bookingDetail.extensionChoiceHint')}</Text>
+            <View style={styles.extensionActions}>
+              <Button onPress={() => resolveExtension('app')} icon="card-outline">{t('bookingDetail.payViaApp', { amount: extraFeeInfo.total })}</Button>
+              <Button onPress={() => resolveExtension('cash')} variant="outline" icon="cash-outline">{t('bookingDetail.payCash', { amount: extension.extraPrice })}</Button>
+            </View>
+          </View>
+        ) : null}
+
+        {extension && resolution ? (
+          <View style={[styles.card, styles.settledCard]}>
+            <Ionicons name="checkmark-circle" size={16} color={d.green} />
+            <Text style={styles.settledText}>
+              {resolution === 'app'
+                ? t('bookingDetail.extensionSettledApp', { amount: extraFeeInfo.total })
+                : t('bookingDetail.extensionSettledCash', { amount: extension.extraPrice })}
+            </Text>
+          </View>
+        ) : null}
 
         {(booking.status === 'upcoming' || booking.status === 'confirmed' || booking.status === 'pending') ? (
           <View style={styles.actions}>
@@ -123,6 +169,14 @@ const createStyles = (d) => StyleSheet.create({
   heroId: { fontSize: 11.5, color: d.textSoft, marginTop: 4, fontFamily: MONO },
   card: { backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 12, marginBottom: 12, padding: 14 },
   cardTitle: { fontSize: 13.5, fontWeight: '700', color: d.text, marginBottom: 4 },
+  extensionCard: { borderColor: d.amber },
+  extensionHeadRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+  extensionTitle: { fontSize: 13.5, fontWeight: '700', color: d.amber },
+  extensionNote: { fontSize: 12, color: d.textSoft, marginBottom: 8, lineHeight: 17 },
+  extensionHint: { fontSize: 11, color: d.textSoft, marginTop: 8, marginBottom: 10 },
+  extensionActions: { gap: 8 },
+  settledCard: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  settledText: { flex: 1, fontSize: 12.5, color: d.text, lineHeight: 17 },
   actions: { gap: 10, marginTop: 4, marginBottom: 12 },
   cancelBtn: { marginTop: 0 },
   homeBtn: { marginTop: 8 },
