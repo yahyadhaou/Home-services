@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { providerService } from '../../services';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
+import { useLocationAccess } from '../../context/LocationContext';
 
 const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
@@ -22,14 +23,21 @@ const NearbyScreen = ({ navigation }) => {
   const [providers, setProviders] = useState([]);
   const [center, setCenter] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
+  const [mapVisible, setMapVisible] = useState(false);
+  const { effectiveCoords } = useLocationAccess();
+
+  const openProvider = (provider) => {
+    setMapVisible(false);
+    navigation.navigate('ProviderDetail', { provider });
+  };
 
   useEffect(() => {
-    providerService.getNearby().then((res) => {
+    providerService.getNearby(effectiveCoords).then((res) => {
       if (res.success) { setProviders(res.providers); setCenter(res.center); }
     });
-  }, []);
+  }, [effectiveCoords]);
 
-  const sorted = [...providers].sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+  const sorted = [...providers].sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
   const selected = providers.find((p) => p.id === selectedId);
 
   return (
@@ -39,60 +47,77 @@ const NearbyScreen = ({ navigation }) => {
         <Text style={styles.subtitle}>{t('nearby.subtitle', { count: providers.length })}</Text>
       </View>
 
-      <View style={styles.mapWrap}>
-        <View style={styles.mapTagRow}>
-          <View style={styles.mapTag}><View style={styles.blinkDot} /><Text style={styles.mapTagText}>{t('nearby.live').toUpperCase()}</Text></View>
-          <Text style={styles.mapCenterLabel}>{center?.label}</Text>
-        </View>
-        <View style={styles.mapField}>
-          {center ? (
-            <View style={[styles.centerPin, { left: `${center.x}%`, top: `${center.y}%` }]}>
-              <View style={styles.centerDot} />
-            </View>
-          ) : null}
-          {providers.map((p) => {
-            const isSel = p.id === selectedId;
-            return (
-              <TouchableOpacity
-                key={p.id}
-                style={[styles.pin, { left: `${p.mapPos.x}%`, top: `${p.mapPos.y}%` }, isSel && styles.pinActive]}
-                onPress={() => setSelectedId(isSel ? null : p.id)}
-                activeOpacity={0.8}
-              >
-                <Ionicons name={CATEGORY_ICON[p.category] || 'business'} size={12} color={isSel ? d.canvas : d.line} />
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        {selected ? (
-          <TouchableOpacity style={styles.mapCallout} onPress={() => navigation.navigate('ProviderDetail', { provider: selected })} activeOpacity={0.85}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.calloutName} numberOfLines={1}>{selected.name}</Text>
-              <Text style={styles.calloutMeta}>{selected.district} · {selected.distance} · ★ {selected.rating}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={d.line} />
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.mapHint}><Text style={styles.mapHintText}>{t('nearby.tapPin')}</Text></View>
-        )}
-      </View>
+      <TouchableOpacity style={styles.mapToggle} onPress={() => setMapVisible(true)} activeOpacity={0.8}>
+        <Ionicons name="map-outline" size={15} color={d.line} />
+        <Text style={styles.mapToggleText}>{t('nearby.viewOnMap')}</Text>
+      </TouchableOpacity>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
         <Text style={styles.listTitle}>{t('nearby.allNearby').toUpperCase()}</Text>
         {sorted.map((p) => (
-          <TouchableOpacity key={p.id} style={styles.row} onPress={() => navigation.navigate('ProviderDetail', { provider: p })} activeOpacity={0.8}>
+          <TouchableOpacity key={p.id} style={styles.row} onPress={() => openProvider(p)} activeOpacity={0.8}>
             <View style={styles.rowIcon}><Ionicons name={p.providerType === 'independent' ? 'person-outline' : 'business-outline'} size={18} color={d.line} /></View>
             <View style={{ flex: 1 }}>
               <Text style={styles.rowName}>{p.name}</Text>
-              <Text style={styles.rowMeta}>{p.category} · {p.district} · {p.distance}</Text>
+              <Text style={styles.rowMeta}>{p.category} · {p.city} · {p.distance}</Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.rowRating}>★ {p.rating}</Text>
+              <Text style={styles.rowRating}>★ {p.rating != null ? p.rating.toFixed(1) : '–'}</Text>
               <Text style={styles.rowPrice}>€{p.hourlyRate}/h</Text>
             </View>
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      <Modal visible={mapVisible} animationType="slide" onRequestClose={() => setMapVisible(false)}>
+        <View style={[styles.modalContainer, { paddingTop: insets.top + 12 }]}>
+          <View style={styles.modalHead}>
+            <TouchableOpacity style={styles.closeBtn} onPress={() => setMapVisible(false)}>
+              <Ionicons name="close" size={18} color={d.text} />
+            </TouchableOpacity>
+            <Text style={styles.title}>{t('nearby.title')}</Text>
+            <View style={styles.closeBtn} />
+          </View>
+
+          <View style={styles.mapWrap}>
+            <View style={styles.mapTagRow}>
+              <View style={styles.mapTag}><View style={styles.blinkDot} /><Text style={styles.mapTagText}>{t('nearby.live').toUpperCase()}</Text></View>
+              <Text style={styles.mapCenterLabel}>{center?.label}</Text>
+            </View>
+            <View style={styles.mapFieldFull}>
+              {center ? (
+                <View style={[styles.centerPin, { left: `${center.x}%`, top: `${center.y}%` }]}>
+                  <View style={styles.centerDot} />
+                </View>
+              ) : null}
+              {providers.map((p) => {
+                const isSel = p.id === selectedId;
+                return (
+                  <TouchableOpacity
+                    key={p.id}
+                    style={[styles.pin, { left: `${p.mapPos.x}%`, top: `${p.mapPos.y}%` }, isSel && styles.pinActive]}
+                    onPress={() => setSelectedId(isSel ? null : p.id)}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name={CATEGORY_ICON[p.category] || 'business'} size={12} color={isSel ? d.canvas : d.line} />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            {selected ? (
+              <TouchableOpacity style={styles.mapCallout} onPress={() => openProvider(selected)} activeOpacity={0.85}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.calloutName} numberOfLines={1}>{selected.name}</Text>
+                  <Text style={styles.calloutMeta}>{selected.city} · {selected.distance} · ★ {selected.rating != null ? selected.rating.toFixed(1) : '–'}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={d.line} />
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.mapHint}><Text style={styles.mapHintText}>{t('nearby.tapPin')}</Text></View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -103,14 +128,21 @@ const createStyles = (d) => StyleSheet.create({
   title: { fontSize: 18, fontWeight: '700', color: d.text },
   subtitle: { fontSize: 12, color: d.textSoft, marginTop: 2 },
 
-  mapWrap: { marginHorizontal: 18, borderRadius: 16, borderWidth: 1, borderColor: d.lineSoft, backgroundColor: d.panel, overflow: 'hidden', marginBottom: 14 },
+  mapToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginHorizontal: 18, marginBottom: 14, paddingVertical: 10, borderRadius: 999, borderWidth: 1, borderColor: d.lineSoft, backgroundColor: d.panel },
+  mapToggleText: { fontSize: 12.5, fontWeight: '600', color: d.text },
+
+  modalContainer: { flex: 1, backgroundColor: d.canvas },
+  modalHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, marginBottom: 12 },
+  closeBtn: { width: 30, height: 30, borderRadius: 8, borderWidth: 1, borderColor: d.lineSoft, alignItems: 'center', justifyContent: 'center' },
+
+  mapWrap: { flex: 1, marginHorizontal: 18, marginBottom: 18, borderRadius: 16, borderWidth: 1, borderColor: d.lineSoft, backgroundColor: d.panel, overflow: 'hidden' },
   mapTagRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, paddingTop: 10 },
   mapTag: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   blinkDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: d.amber },
   mapTagText: { fontSize: 10, letterSpacing: 1, color: d.line, fontFamily: MONO },
   mapCenterLabel: { fontSize: 10.5, color: d.textSoft, fontFamily: MONO },
-  mapField: {
-    height: 200, margin: 10, borderRadius: 12, position: 'relative', overflow: 'hidden',
+  mapFieldFull: {
+    flex: 1, margin: 10, borderRadius: 12, position: 'relative', overflow: 'hidden',
     backgroundColor: d.canvas, borderWidth: 1, borderColor: d.lineSoft,
   },
   centerPin: { position: 'absolute', width: 16, height: 16, marginLeft: -8, marginTop: -8, borderRadius: 8, borderWidth: 1.5, borderColor: d.amber, alignItems: 'center', justifyContent: 'center' },

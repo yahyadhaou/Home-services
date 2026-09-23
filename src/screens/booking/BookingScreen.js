@@ -54,8 +54,10 @@ const BookingScreen = ({ navigation, route }) => {
   const canContinue = selDay !== null && selTime !== '';
   const formatDate = () => (selDay ? `${String(selDay).padStart(2, '0')}.${String(month + 1).padStart(2, '0')}.${year}` : '');
 
+  const isoDate = () => (selDay ? `${year}-${String(month + 1).padStart(2, '0')}-${String(selDay).padStart(2, '0')}` : '');
+
   const handleContinue = () => {
-    navigation.navigate('BookingConfirmation', { provider, service, date: formatDate(), time: selTime, urgency, frequency, subtotal, fee, estimatedTotal, hideFrequency });
+    navigation.navigate('BookingConfirmation', { provider, service, date: formatDate(), scheduledDate: isoDate(), time: selTime, urgency, frequency, subtotal, fee, estimatedTotal, hideFrequency });
   };
 
   // Weeks are chunked explicitly (rather than relying on flexWrap to break

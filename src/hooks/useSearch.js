@@ -1,11 +1,13 @@
 import { useState, useRef } from 'react';
 import { providerService } from '../services';
+import { useLocationAccess } from '../context/LocationContext';
 
 const useSearch = (debounceMs = 300) => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
   const timer = useRef(null);
+  const { effectiveCoords } = useLocationAccess();
 
   const search = (query) => {
     if (timer.current) clearTimeout(timer.current);
@@ -17,7 +19,7 @@ const useSearch = (debounceMs = 300) => {
     setLoading(true);
     timer.current = setTimeout(async () => {
       setError(null);
-      const result = await providerService.searchProviders(query);
+      const result = await providerService.searchProviders(query, effectiveCoords);
       if (result.success) setResults(result.providers);
       else { setError(result.error); setResults([]); }
       setLoading(false);

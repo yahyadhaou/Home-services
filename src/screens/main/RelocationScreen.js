@@ -6,6 +6,7 @@ import { providerService } from '../../services';
 import { withServiceFee, SERVICE_FEE_RATE } from '../../constants/pricing';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
+import { useLocationAccess } from '../../context/LocationContext';
 
 const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
@@ -62,10 +63,11 @@ const RelocationScreen = ({ navigation }) => {
   const [moverType, setMoverType] = useState(null);
   const [helperCount, setHelperCount] = useState(2);
   const [providers, setProviders] = useState([]);
+  const { effectiveCoords } = useLocationAccess();
 
   useEffect(() => {
-    providerService.getProviders('Umzug').then((res) => { if (res.success) setProviders(res.providers); });
-  }, []);
+    providerService.getProviders('umzug', effectiveCoords).then((res) => { if (res.success) setProviders(res.providers); });
+  }, [effectiveCoords]);
 
   const baseVol = ROOM_OPTIONS.find((r) => r.key === rooms)?.vol || 14;
   const itemsVol = ITEM_OPTIONS.filter((i) => items.has(i.key)).reduce((s, i) => s + i.vol, 0);
@@ -347,11 +349,11 @@ const RelocationScreen = ({ navigation }) => {
                       <View style={styles.matchIcon}><Ionicons name={p.providerType === 'independent' ? 'person-outline' : 'business-outline'} size={18} color={d.line} /></View>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.matchName}>{p.name}</Text>
-                        <Text style={styles.matchMeta}>{moverType === 'labor' ? t('relocation.laborOnly') : p.vehicle} · {p.district}</Text>
+                        <Text style={styles.matchMeta}>{moverType === 'labor' ? t('relocation.laborOnly') : p.vehicle} · {p.city}</Text>
                         {smallVehicle ? <Text style={styles.matchWarn}>{t('relocation.mayNeedTrips')}</Text> : null}
                       </View>
                       <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={styles.matchRating}>★ {p.rating}</Text>
+                        <Text style={styles.matchRating}>★ {p.rating != null ? p.rating.toFixed(1) : '–'}</Text>
                         <Ionicons name="chevron-forward" size={14} color={d.textSoft} />
                       </View>
                     </TouchableOpacity>

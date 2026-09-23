@@ -78,6 +78,7 @@ export default {
     phoneInvalid: 'Valid phone number required',
     passwordWeak: 'Min. 8 characters, with letters and numbers',
     termsRequired: 'Please accept the terms',
+    registerFailed: 'Registration failed. Please try again.',
   },
 
   // Home
@@ -295,6 +296,7 @@ export default {
     weekday: 'Mon–Fri', saturday: 'Sat', sunday: 'Sun', emergencyOnly: 'Emergency only',
     from: 'From', bookNow: 'Book Now',
     serviceList: ['Drain Unblocking', 'Faucet Installation', 'Heating Repair', '24/7 Emergency Service', 'Plumbing Maintenance', 'Boiler Service'],
+    noReviewsYet: 'No reviews yet.', customer: 'Customer',
   },
 
   // Search
@@ -346,7 +348,7 @@ export default {
   nearby: {
     title: 'Nearby', subtitle: '{{count}} pros around you right now',
     live: 'Live map', tapPin: 'Tap a pin to preview a pro',
-    allNearby: 'All nearby',
+    allNearby: 'All nearby', viewOnMap: 'View on map',
   },
 
   // Emergency Booking
@@ -381,14 +383,13 @@ export default {
   // Chat inbox
   chatList: {
     title: 'Messages', search: 'Search conversations…',
+    empty: 'No conversations yet', emptySubtitle: 'Messages with a provider will show up here once you start one.',
   },
 
   // Chat
   chat: {
-    online: 'Online', placeholder: 'Type a message...', autoReply: 'Thanks for your message. I\'ll get back to you shortly.',
-    sampleMsg1: 'Hello! How can I help you?',
-    sampleMsg2: 'I have a problem with my faucet.',
-    sampleMsg3: 'No problem! When would be a good time for an appointment?',
+    online: 'Online', placeholder: 'Type a message...',
+    unknownProvider: 'Provider', notAvailableYet: 'This conversation isn\'t available yet.',
   },
 
   // Booking
@@ -419,6 +420,12 @@ export default {
     costOverview: 'Cost Overview', baseFee: 'Base Fee', service: 'Service', emergencyFee: 'Emergency Fee',
     total: 'Total Amount', infoText: "You'll receive a confirmation by email. The provider will contact you 30 minutes before the appointment.",
     back: 'Back', confirmButton: 'Book Now',
+    addressTitle: 'Service Address', street: 'Street & Number', streetPlaceholder: 'Musterstraße 12',
+    postalCode: 'ZIP Code', postalCodePlaceholder: '45131', city: 'City', cityPlaceholder: 'Essen',
+    addressRequired: 'Please provide the service address',
+    paymentTitle: 'Payment method', payCard: 'Card', payApplePay: 'Apple Pay', payGooglePay: 'Google Pay', payCash: 'Cash to provider',
+    payAppHint: "You'll be charged now through the app (simulated — no real payment processor is connected yet).",
+    payCashHint: "You'll pay the provider directly once the job is finished.",
   },
 
   // My Bookings
@@ -468,6 +475,7 @@ export default {
     nameRequired: 'Name is required', emailInvalid: 'Valid email required',
     phoneInvalid: 'Valid phone number required', zipInvalid: 'ZIP must be 5 digits',
     savedTitle: 'Saved', savedBody: 'Your information has been updated.',
+    saveFailed: 'Could not save your changes. Please try again.',
   },
 
   // Payment Methods

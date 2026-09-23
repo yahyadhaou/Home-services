@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useLanguage } from '../i18n';
+import { useLocationAccess } from '../context/LocationContext';
 import TechnicalTabBar from './TechnicalTabBar';
+import navigationRef from './navigationRef';
 
 // Auth
 import LanguagePickerScreen  from '../screens/auth/LanguagePickerScreen';
@@ -49,15 +51,26 @@ const Tab = createBottomTabNavigator();
 // Home / Search / Bookings / Chat / Profile live in one persistent bottom-tab
 // navigator instead of flat stack pushes — route names are unchanged so every
 // existing navigation.navigate('MainTabs', { screen: 'X' }) call keeps working.
-const MainTabs = () => (
-  <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <TechnicalTabBar {...props} />}>
-    <Tab.Screen name="Home" component={HomeScreen} />
-    <Tab.Screen name="Nearby" component={NearbyScreen} />
-    <Tab.Screen name="MyBookings" component={MyBookingsScreen} />
-    <Tab.Screen name="Relocation" component={RelocationScreen} />
-    <Tab.Screen name="Profile" component={ProfileScreen} />
-  </Tab.Navigator>
-);
+const MainTabs = () => {
+  const { status, requestLocation } = useLocationAccess();
+
+  // Fires once, the first time the user actually reaches the authenticated
+  // app (not on Splash/Welcome/Login) — provider distance/nearby features
+  // fall back to a plausible Essen default until this resolves either way.
+  useEffect(() => {
+    if (status === 'undetermined') requestLocation();
+  }, [status, requestLocation]);
+
+  return (
+    <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <TechnicalTabBar {...props} />}>
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Nearby" component={NearbyScreen} />
+      <Tab.Screen name="MyBookings" component={MyBookingsScreen} />
+      <Tab.Screen name="Relocation" component={RelocationScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+    </Tab.Navigator>
+  );
+};
 
 const AppNavigator = () => {
   const { hasChosenLanguage } = useLanguage();
@@ -69,7 +82,7 @@ const AppNavigator = () => {
   const initialRouteName = hasChosenLanguage ? 'Splash' : 'LanguagePicker';
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: false, animation: 'fade' }}>
         <Stack.Screen name="LanguagePicker"      component={LanguagePickerScreen} />
         <Stack.Screen name="Splash"              component={SplashScreen} />

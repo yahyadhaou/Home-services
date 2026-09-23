@@ -73,6 +73,7 @@ export default {
     phoneInvalid: 'Numéro de téléphone valide requis',
     passwordWeak: '8 caractères min., avec lettres et chiffres',
     termsRequired: 'Veuillez accepter les conditions',
+    registerFailed: "Échec de l'inscription. Veuillez réessayer.",
   },
 
   home: {
@@ -286,6 +287,7 @@ export default {
     weekday: 'Lun–Ven', saturday: 'Sam', sunday: 'Dim', emergencyOnly: 'Urgences uniquement',
     from: 'À partir de', bookNow: 'Réserver',
     serviceList: ['Débouchage de canalisation', 'Installation de robinet', 'Réparation de chauffage', "Service d'urgence 24h/24", 'Entretien de plomberie', 'Service chaudière'],
+    noReviewsYet: 'Pas encore d\'avis.', customer: 'Client',
   },
 
   search: {
@@ -334,7 +336,7 @@ export default {
   nearby: {
     title: 'À proximité', subtitle: '{{count}} pros près de chez vous en ce moment',
     live: 'Carte en direct', tapPin: 'Touchez un repère pour un aperçu',
-    allNearby: 'Tous à proximité',
+    allNearby: 'Tous à proximité', viewOnMap: 'Voir sur la carte',
   },
 
   emergency: {
@@ -367,13 +369,12 @@ export default {
 
   chatList: {
     title: 'Messages', search: 'Rechercher des conversations…',
+    empty: 'Pas encore de conversations', emptySubtitle: 'Les messages avec un prestataire apparaîtront ici dès que vous en démarrerez une.',
   },
 
   chat: {
-    online: 'En ligne', placeholder: 'Écrire un message...', autoReply: 'Merci pour votre message. Je vous réponds rapidement.',
-    sampleMsg1: 'Bonjour ! Comment puis-je vous aider ?',
-    sampleMsg2: "J'ai un problème avec mon robinet.",
-    sampleMsg3: 'Pas de problème ! Quand vous conviendrait-il pour un rendez-vous ?',
+    online: 'En ligne', placeholder: 'Écrire un message...',
+    unknownProvider: 'Prestataire', notAvailableYet: "Cette conversation n'est pas encore disponible.",
   },
 
   booking: {
@@ -402,6 +403,12 @@ export default {
     costOverview: 'Détail des coûts', baseFee: 'Frais de base', service: 'Service', emergencyFee: "Frais d'urgence",
     total: 'Montant total', infoText: 'Vous recevrez une confirmation par e-mail. Le prestataire vous contactera 30 minutes avant le rendez-vous.',
     back: 'Retour', confirmButton: 'Réserver',
+    addressTitle: "Adresse d'intervention", street: 'Rue & numéro', streetPlaceholder: 'Musterstraße 12',
+    postalCode: 'Code postal', postalCodePlaceholder: '45131', city: 'Ville', cityPlaceholder: 'Essen',
+    addressRequired: "Veuillez indiquer l'adresse d'intervention",
+    paymentTitle: 'Mode de paiement', payCard: 'Carte', payApplePay: 'Apple Pay', payGooglePay: 'Google Pay', payCash: "Espèces au prestataire",
+    payAppHint: "Vous serez débité maintenant via l'application (simulé — aucun prestataire de paiement réel n'est encore connecté).",
+    payCashHint: "Vous payez le prestataire directement une fois la mission terminée.",
   },
 
   myBookings: {
@@ -447,6 +454,7 @@ export default {
     nameRequired: 'Le nom est requis', emailInvalid: 'E-mail valide requis',
     phoneInvalid: 'Numéro de téléphone valide requis', zipInvalid: 'Le code postal doit comporter 5 chiffres',
     savedTitle: 'Enregistré', savedBody: 'Vos informations ont été mises à jour.',
+    saveFailed: "Impossible d'enregistrer vos modifications. Veuillez réessayer.",
   },
 
   paymentMethods: {

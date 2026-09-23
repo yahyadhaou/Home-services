@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button, Header } from '../../components/common';
 import { withServiceFee, SERVICE_FEE_RATE } from '../../constants/pricing';
 import { useApp } from '../../context/AppContext';
+import bookingService from '../../services/bookingService';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
 
@@ -43,7 +44,16 @@ const BookingDetailScreen = ({ navigation, route }) => {
   const handleCancel = () => {
     Alert.alert(t('bookingDetail.cancelConfirmTitle'), t('bookingDetail.cancelConfirmBody'), [
       { text: t('bookingDetail.cancelAbort'), style: 'cancel' },
-      { text: t('bookingDetail.cancelConfirm'), style: 'destructive', onPress: () => { if (booking.id) updateBooking(booking.id, { status: 'cancelled' }); navigation.goBack(); } },
+      {
+        text: t('bookingDetail.cancelConfirm'),
+        style: 'destructive',
+        onPress: async () => {
+          if (!booking.id) { navigation.goBack(); return; }
+          const result = await bookingService.cancelBooking(booking.id);
+          if (result.success) updateBooking(booking.id, { status: 'cancelled' });
+          navigation.goBack();
+        },
+      },
     ]);
   };
 
@@ -105,8 +115,6 @@ const BookingDetailScreen = ({ navigation, route }) => {
 
         {(booking.status === 'upcoming' || booking.status === 'confirmed' || booking.status === 'pending') ? (
           <View style={styles.actions}>
-            <Button onPress={() => navigation.navigate('LiveTracking', { provider: { name: booking.provider } })} icon="navigate-outline">{t('bookingDetail.trackLive')}</Button>
-            <Button onPress={() => navigation.navigate('ChatThread', { provider: { name: booking.provider } })} variant="outline" icon="chatbubble-outline">{t('bookingDetail.sendMessage')}</Button>
             <Button onPress={handleCancel} variant="ghost" style={styles.cancelBtn}>{t('bookingDetail.cancelBooking')}</Button>
           </View>
         ) : null}
@@ -128,9 +136,11 @@ const BookingDetailScreen = ({ navigation, route }) => {
             </View>
             <View style={styles.actions}>
               <Button onPress={() => navigation.navigate('Booking', { provider: { name: booking.provider }, service: booking.service })} icon="repeat">{t('home.bookAgain')}</Button>
-              <Button onPress={() => navigation.navigate('ProviderDetail', { provider: { name: booking.provider, id: '1' } })} variant="outline" icon="star-outline">
-                {t('bookingDetail.leaveReview')}
-              </Button>
+              {booking.providerId ? (
+                <Button onPress={() => navigation.navigate('ProviderDetail', { provider: { name: booking.provider, id: booking.providerId, providerType: booking.providerType } })} variant="outline" icon="star-outline">
+                  {t('bookingDetail.leaveReview')}
+                </Button>
+              ) : null}
             </View>
           </>
         ) : null}

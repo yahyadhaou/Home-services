@@ -10,7 +10,7 @@ import { getInitials } from '../../utils';
 const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
 const ProfileScreen = ({ navigation }) => {
-  const { user, logout } = useApp();
+  const { user, logout, bookings, favorites } = useApp();
   const { t } = useLanguage();
   const { colors } = useTheme();
   const d = colors.dispatch;
@@ -29,7 +29,10 @@ const ProfileScreen = ({ navigation }) => {
     { icon: 'settings-outline',      label: t('profile.settings'),     screen: 'Settings'       },
   ];
 
-  const handleLogout = () => { logout(); navigation.replace('Welcome'); };
+  const handleLogout = async () => {
+    await logout();
+    navigation.replace('Welcome');
+  };
 
   return (
     <View style={styles.container}>
@@ -45,9 +48,8 @@ const ProfileScreen = ({ navigation }) => {
 
         <View style={styles.statsRow}>
           {[
-            { val: '12', lbl: t('profile.bookings') },
-            { val: '5',  lbl: t('profile.favorites') },
-            { val: '4.9', lbl: t('profile.rating') },
+            { val: String(bookings.length), lbl: t('profile.bookings') },
+            { val: String(favorites.length), lbl: t('profile.favorites') },
           ].map((s, i) => (
             <View key={i} style={styles.statCard}><Text style={styles.statVal}>{s.val}</Text><Text style={styles.statLbl}>{s.lbl.toUpperCase()}</Text></View>
           ))}

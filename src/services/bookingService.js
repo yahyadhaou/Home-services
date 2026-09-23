@@ -1,21 +1,79 @@
 /**
  * bookingService.js — create / fetch / cancel bookings, price estimation.
- * Maps to the spec's "booking engine" backend module.
+ * Create/fetch/cancel talk to the real backend's /bookings endpoints;
+ * `toAppBooking` maps its DTO (see bookings.service.js's toBookingDTO) down
+ * to the flat shape MyBookingsScreen/BookingDetailScreen already render.
  */
+import api, { ApiError } from './api';
+
+const toAppBooking = (dto) => ({
+  id: dto.id,
+  service: dto.serviceLabel,
+  provider: dto.provider?.name,
+  providerId: dto.provider?.id,
+  providerType: dto.providerType,
+  date: dto.scheduledDate,
+  time: dto.scheduledTime,
+  status: dto.status,
+  frequency: dto.isRecurring ? (dto.recurrenceFrequency || 'weekly') : 'once',
+  urgency: dto.isEmergency ? 'emergency' : 'normal',
+  total: dto.pricing?.priceGross,
+  createdAt: dto.createdAt,
+});
+
 const bookingService = {
   createBooking: async (bookingData) => {
-    await new Promise((r) => setTimeout(r, 500));
-    return { success: true, booking: { id: Date.now().toString(), createdAt: new Date().toISOString(), status: 'confirmed', ...bookingData } };
+    try {
+      const payload = {
+        categoryCode: bookingData.categoryCode,
+        serviceLabel: bookingData.service,
+        providerType: bookingData.providerType,
+        ...(bookingData.providerType === 'company'
+          ? { companyId: bookingData.providerId }
+          : { independentProviderId: bookingData.providerId }),
+        clientPhone: bookingData.clientPhone,
+        addressStreet: bookingData.addressStreet,
+        addressPostalCode: bookingData.addressPostalCode,
+        addressCity: bookingData.addressCity,
+        scheduledDate: bookingData.scheduledDate,
+        scheduledTime: bookingData.time,
+        priceGross: bookingData.total,
+        isRecurring: bookingData.frequency && bookingData.frequency !== 'once',
+        recurrenceFrequency: bookingData.frequency && bookingData.frequency !== 'once' ? bookingData.frequency : undefined,
+        isEmergency: bookingData.urgency === 'emergency',
+      };
+      const json = await api.post('/bookings', payload);
+      return { success: true, booking: toAppBooking(json.data.booking) };
+    } catch (err) {
+      return { success: false, error: err instanceof ApiError ? err.message : 'Something went wrong' };
+    }
+  },
+
+  getBookingById: async (id) => {
+    try {
+      const json = await api.get(`/bookings/${id}`);
+      return { success: true, booking: toAppBooking(json.data.booking) };
+    } catch (err) {
+      return { success: false, error: err instanceof ApiError ? err.message : 'Something went wrong' };
+    }
   },
 
   getMyBookings: async () => {
-    await new Promise((r) => setTimeout(r, 400));
-    return { success: true, bookings: [] };
+    try {
+      const json = await api.get('/bookings');
+      return { success: true, bookings: (json.data || []).map(toAppBooking) };
+    } catch (err) {
+      return { success: false, error: err instanceof ApiError ? err.message : 'Something went wrong' };
+    }
   },
 
   cancelBooking: async (bookingId) => {
-    await new Promise((r) => setTimeout(r, 300));
-    return { success: true };
+    try {
+      const json = await api.post(`/bookings/${bookingId}/cancel`, {});
+      return { success: true, booking: toAppBooking(json.data.booking) };
+    } catch (err) {
+      return { success: false, error: err instanceof ApiError ? err.message : 'Something went wrong' };
+    }
   },
 
   /** urgency: 'normal' | 'emergency' — adds Notfall-Zuschlag from the spec's monetization rules */

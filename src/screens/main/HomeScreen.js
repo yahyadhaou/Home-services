@@ -71,11 +71,7 @@ const HomeScreen = ({ navigation }) => {
     { code: '09/HDW', icon: 'construct-outline', name: t('home.handyman'), available: 11, category: t('home.handyman') },
   ];
 
-  const MOCK_BOOKINGS = [
-    { id: 'm1', service: t('home.plumber'), provider: 'Rüttenscheider Sanitärtechnik GmbH', date: '15.05.2026', time: '14:00', status: 'confirmed' },
-  ];
-  const displayBookings = bookings.length > 0 ? bookings : MOCK_BOOKINGS;
-  const recent = displayBookings[0];
+  const recent = bookings[0];
 
   const bookAgain = (job) => navigation.navigate('Booking', { provider: { name: job.provider }, service: job.service });
 
@@ -140,7 +136,7 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles2.sech}>
           <Text style={[styles2.sechH, { color: d.text }]}>{t('home.services')}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('ServiceCategory', { service: t('home.plumber') })}>
-            <Text style={[styles2.sechSee, { color: d.line }]}>{t('home.seeAll').toUpperCase()} &gt;</Text>
+            {/* <Text style={[styles2.sechSee, { color: d.line }]}>{t('home.seeAll').toUpperCase()} &gt;</Text> */}
           </TouchableOpacity>
         </View>
         <View style={styles2.tiles}>

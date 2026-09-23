@@ -78,6 +78,7 @@ export default {
     phoneInvalid: 'Gültige Telefonnummer erforderlich',
     passwordWeak: 'Mind. 8 Zeichen, mit Buchstaben und Zahlen',
     termsRequired: 'Bitte akzeptieren Sie die Bedingungen',
+    registerFailed: 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.',
   },
 
   // Home
@@ -295,6 +296,7 @@ export default {
     weekday: 'Mo–Fr', saturday: 'Sa', sunday: 'So', emergencyOnly: 'Nur Notfälle',
     from: 'Ab', bookNow: 'Jetzt buchen',
     serviceList: ['Rohrverstopfung', 'Wasserhahn-Installation', 'Heizungsreparatur', '24/7 Notdienst', 'Sanitär-Wartung', 'Heizkessel-Service'],
+    noReviewsYet: 'Noch keine Bewertungen.', customer: 'Kunde',
   },
 
   // Search
@@ -344,7 +346,7 @@ export default {
   nearby: {
     title: 'In der Nähe', subtitle: '{{count}} Fachkräfte gerade in Ihrer Nähe',
     live: 'Live-Karte', tapPin: 'Tippen Sie auf einen Pin für eine Vorschau',
-    allNearby: 'Alle in der Nähe',
+    allNearby: 'Alle in der Nähe', viewOnMap: 'Auf der Karte anzeigen',
   },
 
   // Emergency Booking
@@ -379,14 +381,13 @@ export default {
   // Chat inbox
   chatList: {
     title: 'Nachrichten', search: 'Unterhaltungen durchsuchen…',
+    empty: 'Noch keine Unterhaltungen', emptySubtitle: 'Nachrichten mit einem Anbieter erscheinen hier, sobald Sie eine Unterhaltung starten.',
   },
 
   // Chat
   chat: {
-    online: 'Online', placeholder: 'Nachricht schreiben...', autoReply: 'Danke für Ihre Nachricht. Ich melde mich in Kürze.',
-    sampleMsg1: 'Guten Tag! Wie kann ich Ihnen helfen?',
-    sampleMsg2: 'Ich habe ein Problem mit meinem Wasserhahn.',
-    sampleMsg3: 'Kein Problem! Wann wäre ein Termin günstig?',
+    online: 'Online', placeholder: 'Nachricht schreiben...',
+    unknownProvider: 'Anbieter', notAvailableYet: 'Diese Unterhaltung ist noch nicht verfügbar.',
   },
 
   // Booking
@@ -417,6 +418,12 @@ export default {
     costOverview: 'Kostenübersicht', baseFee: 'Grundgebühr', service: 'Leistung', emergencyFee: 'Notfallgebühr',
     total: 'Gesamtbetrag', infoText: 'Sie erhalten eine Bestätigung per E-Mail. Der Anbieter kontaktiert Sie 30 Minuten vor dem Termin.',
     back: 'Zurück', confirmButton: 'Jetzt buchen',
+    addressTitle: 'Einsatzadresse', street: 'Straße & Hausnummer', streetPlaceholder: 'Musterstraße 12',
+    postalCode: 'Postleitzahl', postalCodePlaceholder: '45131', city: 'Stadt', cityPlaceholder: 'Essen',
+    addressRequired: 'Bitte geben Sie die Einsatzadresse an',
+    paymentTitle: 'Zahlungsmethode', payCard: 'Karte', payApplePay: 'Apple Pay', payGooglePay: 'Google Pay', payCash: 'Bar beim Anbieter',
+    payAppHint: 'Sie werden jetzt über die App belastet (simuliert — es ist noch kein echter Zahlungsanbieter angebunden).',
+    payCashHint: 'Sie bezahlen den Anbieter direkt, sobald der Auftrag abgeschlossen ist.',
   },
 
   // My Bookings
@@ -466,6 +473,7 @@ export default {
     nameRequired: 'Name ist erforderlich', emailInvalid: 'Gültige E-Mail erforderlich',
     phoneInvalid: 'Gültige Telefonnummer erforderlich', zipInvalid: 'PLZ muss 5 Ziffern haben',
     savedTitle: 'Gespeichert', savedBody: 'Ihre Angaben wurden aktualisiert.',
+    saveFailed: 'Änderungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.',
   },
 
   // Payment Methods

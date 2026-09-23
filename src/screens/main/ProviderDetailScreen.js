@@ -1,19 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Badge } from '../../components/common';
 import { useApp } from '../../context/AppContext';
+import { api } from '../../services';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
 
 const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
-const REVIEWS = [
-  { id: '1', author: 'Anna M.',  rating: 5, date: '05.05.2026', comment: 'Sehr professionell und pünktlich. Kann ich nur empfehlen!' },
-  { id: '2', author: 'Klaus B.', rating: 4, date: '01.05.2026', comment: 'Gute Arbeit, schnell und sauber.' },
-  { id: '3', author: 'Sara T.',  rating: 5, date: '25.04.2026', comment: 'Toller Service, sehr freundlich.' },
-];
+const formatReviewDate = (iso) => {
+  if (!iso) return '';
+  const dt = new Date(iso);
+  return `${String(dt.getDate()).padStart(2, '0')}.${String(dt.getMonth() + 1).padStart(2, '0')}.${dt.getFullYear()}`;
+};
 
 const ProviderDetailScreen = ({ navigation, route }) => {
   const { isFavorite, addFavorite, removeFavorite } = useApp();
@@ -25,9 +26,20 @@ const ProviderDetailScreen = ({ navigation, route }) => {
 
   const provider = route.params?.provider || {};
   const [activeTab, setActiveTab] = useState(0);
+  const [reviews, setReviews] = useState([]);
   const fav = isFavorite(provider.id);
   const toggleFav = () => (fav ? removeFavorite(provider.id) : addFavorite(provider.id));
-  const avgRating = REVIEWS.reduce((s, r) => s + r.rating, 0) / REVIEWS.length;
+  const avgRating = provider.rating ?? null;
+
+  useEffect(() => {
+    if (!provider.id) return;
+    const path = provider.providerType === 'independent'
+      ? `/reviews/independents/${provider.id}`
+      : `/reviews/companies/${provider.id}`;
+    api.get(path, { limit: 20 })
+      .then((res) => setReviews(res.data || []))
+      .catch(() => setReviews([]));
+  }, [provider.id, provider.providerType]);
 
   const TABS = [t('providerDetail.tabAbout'), t('providerDetail.tabReviews'), t('providerDetail.tabServices')];
 
@@ -43,22 +55,21 @@ const ProviderDetailScreen = ({ navigation, route }) => {
         </View>
 
         <View style={styles.infoCard}>
-          <Text style={styles.providerName}>{provider.name || 'Rüttenscheider Sanitärtechnik GmbH'}</Text>
+          <Text style={styles.providerName}>{provider.name}</Text>
           <Text style={styles.typeTag}>{provider.providerType === 'independent' ? t('providerList.independent') : t('providerList.company')}</Text>
           <View style={styles.metaRow}>
             <Ionicons name="star" size={14} color={d.amber} />
-            <Text style={styles.rating}>{provider.rating || '4.9'}</Text>
-            <Text style={styles.reviews}>({provider.reviews || 234} {t('providerDetail.reviews')})</Text>
+            <Text style={styles.rating}>{avgRating != null ? avgRating.toFixed(1) : '–'}</Text>
+            <Text style={styles.reviews}>({provider.reviews ?? 0} {t('providerDetail.reviews')})</Text>
             {provider.verified ? <Badge label={t('providerDetail.verified')} color={d.green} /> : null}
           </View>
-          <Text style={styles.distance}>{provider.street ? `${provider.street}, ${provider.plz} Essen-${provider.district}` : 'Rüttenscheider Straße 88, 45131 Essen-Rüttenscheid'}</Text>
-          <Text style={styles.distanceKm}>{provider.distance || '1.2 km'}</Text>
+          <Text style={styles.distance}>{[provider.street, [provider.postalCode, provider.city].filter(Boolean).join(' ')].filter(Boolean).join(', ')}</Text>
+          {provider.distance ? <Text style={styles.distanceKm}>{provider.distance}</Text> : null}
 
           <View style={styles.statsRow}>
             {[
-              { val: provider.jobs || 450, lbl: t('providerDetail.jobsCompleted') },
-              { val: provider.responseTime || '<10min', lbl: t('providerDetail.responseTime') },
-              { val: '98%', lbl: t('providerDetail.successRate') },
+              { val: provider.jobs ?? 0, lbl: t('providerDetail.jobsCompleted') },
+              { val: provider.responseTime || '–', lbl: t('providerDetail.responseTime') },
             ].map((s, i) => (
               <View key={i} style={styles.statBlock}>
                 <Text style={styles.statVal}>{s.val}</Text><Text style={styles.statLbl}>{s.lbl.toUpperCase()}</Text>
@@ -98,21 +109,31 @@ const ProviderDetailScreen = ({ navigation, route }) => {
 
           {activeTab === 1 ? (
             <View>
-              <View style={styles.avgRow}>
-                <Text style={styles.avgNum}>{avgRating.toFixed(1)}</Text>
-                <View>
-                  <View style={styles.starsRow}>{[1,2,3,4,5].map((s) => <Ionicons key={s} name={s <= Math.round(avgRating) ? 'star' : 'star-outline'} size={15} color={d.amber} />)}</View>
-                  <Text style={styles.totalReviews}>{REVIEWS.length} {t('providerDetail.reviews')}</Text>
+              {avgRating != null ? (
+                <View style={styles.avgRow}>
+                  <Text style={styles.avgNum}>{avgRating.toFixed(1)}</Text>
+                  <View>
+                    <View style={styles.starsRow}>{[1,2,3,4,5].map((s) => <Ionicons key={s} name={s <= Math.round(avgRating) ? 'star' : 'star-outline'} size={15} color={d.amber} />)}</View>
+                    <Text style={styles.totalReviews}>{provider.reviews ?? 0} {t('providerDetail.reviews')}</Text>
+                  </View>
                 </View>
-              </View>
-              {REVIEWS.map((r) => (
+              ) : null}
+              {reviews.length === 0 ? (
+                <Text style={styles.descText}>{t('providerDetail.noReviewsYet')}</Text>
+              ) : reviews.map((r) => (
                 <View key={r.id} style={styles.reviewCard}>
                   <View style={styles.reviewHeader}>
-                    <View style={styles.reviewAvatar}><Text style={styles.reviewInitial}>{r.author[0]}</Text></View>
-                    <View style={styles.reviewMeta}><Text style={styles.reviewAuthor}>{r.author}</Text><Text style={styles.reviewDate}>{r.date}</Text></View>
+                    <View style={styles.reviewAvatar}><Ionicons name="person-outline" size={15} color={d.line} /></View>
+                    <View style={styles.reviewMeta}><Text style={styles.reviewAuthor}>{t('providerDetail.customer')}</Text><Text style={styles.reviewDate}>{formatReviewDate(r.createdAt)}</Text></View>
                     <View style={styles.reviewStars}>{[1,2,3,4,5].map((s) => <Ionicons key={s} name={s <= r.rating ? 'star' : 'star-outline'} size={11} color={d.amber} />)}</View>
                   </View>
-                  <Text style={styles.reviewComment}>{r.comment}</Text>
+                  {r.comment ? <Text style={styles.reviewComment}>{r.comment}</Text> : null}
+                  {r.providerResponse ? (
+                    <View style={styles.providerResponseBox}>
+                      <Text style={styles.providerResponseLabel}>{provider.name}</Text>
+                      <Text style={styles.reviewComment}>{r.providerResponse}</Text>
+                    </View>
+                  ) : null}
                 </View>
               ))}
             </View>
@@ -131,7 +152,7 @@ const ProviderDetailScreen = ({ navigation, route }) => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <View><Text style={styles.priceFrom}>{t('providerDetail.from')}</Text><Text style={styles.price}>€{provider.hourlyRate || 80}/h</Text></View>
+        <View><Text style={styles.priceFrom}>{t('providerDetail.from')}</Text><Text style={styles.price}>€{provider.hourlyRate ?? '–'}/h</Text></View>
         <Button onPress={() => navigation.navigate('Booking', { provider })} icon="calendar-outline" style={styles.bookBtn}>{t('providerDetail.bookNow')}</Button>
       </View>
     </View>
@@ -184,6 +205,8 @@ const createStyles = (d) => StyleSheet.create({
   reviewDate: { fontSize: 10.5, color: d.textSoft },
   reviewStars: { flexDirection: 'row', gap: 2 },
   reviewComment: { fontSize: 12.5, color: d.textSoft, lineHeight: 19 },
+  providerResponseBox: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: d.lineSoft },
+  providerResponseLabel: { fontSize: 11, fontWeight: '700', color: d.line, marginBottom: 3 },
   serviceItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: d.lineSoft, gap: 10 },
   serviceItemText: { fontSize: 13, color: d.text },
   footer: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', backgroundColor: d.panel, borderTopWidth: 1, borderTopColor: d.lineSoft, paddingHorizontal: 18, paddingVertical: 14, gap: 14 },

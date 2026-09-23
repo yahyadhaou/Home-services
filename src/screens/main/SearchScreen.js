@@ -72,7 +72,7 @@ const SearchScreen = ({ navigation }) => {
                             <Text style={styles.resultName}>{item.name}</Text>
                             <Text style={styles.resultCategory}>{item.category} · {item.distance}</Text>
                           </View>
-                          <View style={styles.ratingChip}><Ionicons name="star" size={11} color={d.amber} /><Text style={styles.ratingText}>{item.rating}</Text></View>
+                          <View style={styles.ratingChip}><Ionicons name="star" size={11} color={d.amber} /><Text style={styles.ratingText}>{item.rating != null ? item.rating.toFixed(1) : '–'}</Text></View>
                         </View>
                       </View>
                     </TouchableOpacity>

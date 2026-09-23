@@ -1,24 +1,40 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { useTheme } from '../../constants/ThemeContext';
+import { useApp } from '../../context/AppContext';
 
 const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
+const MIN_DISPLAY_MS = 2200;
 
 const SplashScreen = ({ navigation }) => {
   const { colors } = useTheme();
+  const { isAuthenticated, authChecked } = useApp();
   const d = colors.dispatch;
   const fadeAnim  = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
+  const mountedAtRef = React.useRef(Date.now());
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim,  { toValue: 1, duration: 800, useNativeDriver: true }),
       Animated.spring(scaleAnim, { toValue: 1, tension: 20, friction: 7, useNativeDriver: true }),
     ]).start();
-
-    const timer = setTimeout(() => navigation.replace('Onboarding'), 2200);
-    return () => clearTimeout(timer);
   }, []);
+
+  // Waits for both the minimum splash duration AND the on-start session
+  // restore (AppContext tries a stored refresh token before this resolves)
+  // — a returning user with a still-valid session skips straight to
+  // MainTabs instead of seeing Onboarding/Login again. Tops up to the
+  // minimum display time rather than waiting the full duration again once
+  // authChecked flips true, so a fast session check doesn't double the wait.
+  useEffect(() => {
+    if (!authChecked) return undefined;
+    const remaining = Math.max(0, MIN_DISPLAY_MS - (Date.now() - mountedAtRef.current));
+    const timer = setTimeout(() => {
+      navigation.replace(isAuthenticated ? 'MainTabs' : 'Onboarding');
+    }, remaining);
+    return () => clearTimeout(timer);
+  }, [authChecked, isAuthenticated]);
 
   return (
     <View style={[styles.container, { backgroundColor: d.canvas }]}>

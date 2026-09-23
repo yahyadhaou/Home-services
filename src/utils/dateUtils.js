@@ -27,6 +27,11 @@ export const buildCalendarGrid = (year, month) => {
   const cells = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  // Pad the trailing edge too, not just the leading one — otherwise the
+  // final week of the month renders with fewer than 7 cells, and since
+  // each cell is `flex: 1`, that row's cells stretch to fill the row
+  // instead of lining up under their real weekday column.
+  while (cells.length % 7 !== 0) cells.push(null);
   return cells;
 };
 

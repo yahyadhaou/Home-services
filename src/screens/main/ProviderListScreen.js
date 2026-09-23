@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Header, Badge } from '../../components/common';
+import { Header } from '../../components/common';
 import { useProviders } from '../../hooks';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
@@ -9,11 +9,11 @@ import { useTheme } from '../../constants/ThemeContext';
 const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 
 // Maps the translated display name shown in the UI (e.g. "Plumber") back to the
-// German category key used in the provider mock data (e.g. "Klempner") — same
-// resolution pattern as ServiceCategoryScreen's SERVICE_META/resolveServiceCode.
+// backend category code (e.g. "klempner") — same resolution pattern as
+// ServiceCategoryScreen's SERVICE_META/resolveServiceCode.
 const CATEGORY_BY_CODE = {
-  plumber: 'Klempner', electrician: 'Elektriker', cleaning: 'Reinigung', heating: 'Heizung',
-  carpenter: 'Schreiner', painter: 'Maler', gardener: 'Gärtner', internet: 'Internettechniker', handyman: 'Handwerker',
+  plumber: 'klempner', electrician: 'elektriker', cleaning: 'reinigung', heating: 'heizung',
+  carpenter: 'schreiner', painter: 'maler', gardener: 'gaertner', internet: 'internettechniker', handyman: 'handwerker',
 };
 const resolveCategory = (displayName, t) => {
   const code = Object.keys(CATEGORY_BY_CODE).find((c) => t(`home.${c}`) === displayName);
@@ -45,9 +45,9 @@ const ProviderListScreen = ({ navigation, route }) => {
 
   const filtered = typeFilter === 'all' ? providers : providers.filter((p) => p.providerType === typeFilter);
   const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === 'rating') return b.rating - a.rating;
-    if (sortBy === 'price')  return a.hourlyRate - b.hourlyRate;
-    return parseFloat(a.distance) - parseFloat(b.distance);
+    if (sortBy === 'rating') return (b.rating ?? -1) - (a.rating ?? -1);
+    if (sortBy === 'price')  return (a.hourlyRate ?? Infinity) - (b.hourlyRate ?? Infinity);
+    return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
   });
 
   const renderProvider = ({ item }) => (
@@ -60,10 +60,10 @@ const ProviderListScreen = ({ navigation, route }) => {
               <Text style={styles.name}>{item.name}</Text>
               {item.verified ? <Ionicons name="checkmark-circle" size={15} color={d.green} style={{ marginLeft: 4 }} /> : null}
             </View>
-            <Text style={styles.typeTag}>{item.providerType === 'independent' ? t('providerList.independent') : t('providerList.company')} · {item.district}</Text>
+            <Text style={styles.typeTag}>{item.providerType === 'independent' ? t('providerList.independent') : t('providerList.company')} · {item.city}</Text>
             <View style={styles.ratingRow}>
               <Ionicons name="star" size={12} color={d.amber} />
-              <Text style={styles.rating}>{item.rating}</Text>
+              <Text style={styles.rating}>{item.rating != null ? item.rating.toFixed(1) : '–'}</Text>
               <Text style={styles.reviews}>({item.reviews})</Text>
               <View style={styles.dot} />
               <Ionicons name="location-outline" size={11} color={d.textSoft} />
@@ -77,11 +77,11 @@ const ProviderListScreen = ({ navigation, route }) => {
         </View>
 
         <View style={styles.statsRow}>
-          <View style={styles.stat}><Ionicons name="time-outline" size={13} color={d.textSoft} /><Text style={styles.statText}>{item.responseTime} {t('providerList.responseTime')}</Text></View>
+          {item.responseTime ? (
+            <View style={styles.stat}><Ionicons name="time-outline" size={13} color={d.textSoft} /><Text style={styles.statText}>{item.responseTime} {t('providerList.responseTime')}</Text></View>
+          ) : null}
           <View style={styles.stat}><Ionicons name="checkmark-done-outline" size={13} color={d.textSoft} /><Text style={styles.statText}>{item.jobs} {t('providerList.completedJobs')}</Text></View>
         </View>
-
-        <Badge label={item.available} color={d.green} />
       </View>
     </TouchableOpacity>
   );

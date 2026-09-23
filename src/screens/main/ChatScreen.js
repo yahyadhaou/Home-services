@@ -1,36 +1,46 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { messageService } from '../../services';
+import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
 
 const ChatScreen = ({ navigation, route }) => {
   const { t } = useLanguage();
   const { colors } = useTheme();
+  const { user } = useApp();
   const d = colors.dispatch;
   const insets = useSafeAreaInsets();
   const styles = createStyles(d);
-  const provider = route.params?.provider || { name: 'Rüttenscheider Sanitärtechnik GmbH' };
+  const provider = route.params?.provider || {};
+  const conversationId = route.params?.conversationId;
 
-  const INITIAL_MESSAGES = [
-    { id: '1', text: t('chat.sampleMsg1'), sender: 'provider', time: '09:00' },
-    { id: '2', text: t('chat.sampleMsg2'), sender: 'user', time: '09:01' },
-    { id: '3', text: t('chat.sampleMsg3'), sender: 'provider', time: '09:02' },
-  ];
-
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
-  const [input, setInput]       = useState('');
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
   const listRef = useRef(null);
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
-    const newMsg = { id: Date.now().toString(), text: input.trim(), sender: 'user', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-    setMessages((prev) => [...prev, newMsg]);
+  const load = useCallback(() => {
+    if (!conversationId) { setLoading(false); return; }
+    messageService.listMessages(conversationId, user?.id).then((res) => {
+      if (res.success) setMessages(res.messages);
+      setLoading(false);
+    });
+  }, [conversationId, user?.id]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const sendMessage = async () => {
+    const text = input.trim();
+    if (!text || !conversationId || sending) return;
+    setSending(true);
     setInput('');
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { id: Date.now().toString(), text: t('chat.autoReply'), sender: 'provider', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
-    }, 1200);
+    const res = await messageService.sendMessage(conversationId, text, user?.id);
+    if (res.success) setMessages((prev) => [...prev, res.message]);
+    setSending(false);
   };
 
   const renderMessage = ({ item }) => {
@@ -38,7 +48,7 @@ const ChatScreen = ({ navigation, route }) => {
     return (
       <View style={[styles.messageRow, isUser && styles.messageRowUser]}>
         {!isUser ? (
-          <View style={styles.providerAvatar}><Text style={styles.providerAvatarText}>{provider.name.charAt(0)}</Text></View>
+          <View style={styles.providerAvatar}><Text style={styles.providerAvatarText}>{(provider.name || '?').charAt(0)}</Text></View>
         ) : null}
         <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleProvider]}>
           <Text style={[styles.bubbleText, isUser && styles.bubbleTextUser]}>{item.text}</Text>
@@ -55,31 +65,44 @@ const ChatScreen = ({ navigation, route }) => {
           <Ionicons name="arrow-back" size={16} color={d.text} />
         </TouchableOpacity>
         <View style={styles.providerInfo}>
-          <View style={styles.headerAvatar}><Text style={styles.headerAvatarText}>{provider.name.charAt(0)}</Text></View>
-          <View>
-            <Text style={styles.providerName} numberOfLines={1}>{provider.name}</Text>
-            <View style={styles.onlineRow}><View style={styles.onlineDot} /><Text style={styles.onlineText}>{t('chat.online').toUpperCase()}</Text></View>
-          </View>
+          <View style={styles.headerAvatar}><Text style={styles.headerAvatarText}>{(provider.name || '?').charAt(0)}</Text></View>
+          <Text style={styles.providerName} numberOfLines={1}>{provider.name || t('chat.unknownProvider')}</Text>
         </View>
-        <TouchableOpacity style={styles.callBtn}><Ionicons name="call-outline" size={16} color={d.line} /></TouchableOpacity>
       </View>
 
-      <FlatList
-        ref={listRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messagesList}
-        showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
-      />
+      {!conversationId ? (
+        <View style={styles.unavailableBox}>
+          <Ionicons name="chatbubble-ellipses-outline" size={28} color={d.textSoft} />
+          <Text style={styles.unavailableText}>{t('chat.notAvailableYet')}</Text>
+        </View>
+      ) : loading ? (
+        <View style={styles.loadingBox}><ActivityIndicator color={d.line} size="large" /></View>
+      ) : (
+        <FlatList
+          ref={listRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.messagesList}
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+        />
+      )}
 
       <View style={styles.inputBar}>
         <View style={styles.inputWrap}>
-          <TextInput style={styles.textInput} placeholder={t('chat.placeholder')} placeholderTextColor={d.textSoft} value={input} onChangeText={setInput} multiline />
+          <TextInput
+            style={styles.textInput}
+            placeholder={t('chat.placeholder')}
+            placeholderTextColor={d.textSoft}
+            value={input}
+            onChangeText={setInput}
+            multiline
+            editable={!!conversationId}
+          />
         </View>
-        <TouchableOpacity style={[styles.sendBtn, input.trim() ? styles.sendBtnActive : null]} onPress={sendMessage} disabled={!input.trim()}>
-          <Ionicons name="send" size={16} color={input.trim() ? d.canvas : d.textSoft} />
+        <TouchableOpacity style={[styles.sendBtn, input.trim() && conversationId ? styles.sendBtnActive : null]} onPress={sendMessage} disabled={!input.trim() || !conversationId || sending}>
+          <Ionicons name="send" size={16} color={input.trim() && conversationId ? d.canvas : d.textSoft} />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -94,10 +117,9 @@ const createStyles = (d) => StyleSheet.create({
   headerAvatar: { width: 38, height: 38, borderRadius: 10, borderWidth: 1, borderColor: d.lineSoft, backgroundColor: d.panel, alignItems: 'center', justifyContent: 'center' },
   headerAvatarText: { fontSize: 15, fontWeight: '700', color: d.line },
   providerName: { fontSize: 14, fontWeight: '700', color: d.text },
-  onlineRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  onlineDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: d.green },
-  onlineText: { fontSize: 9, color: d.green, letterSpacing: 0.3 },
-  callBtn: { width: 34, height: 34, borderRadius: 9, borderWidth: 1, borderColor: d.lineSoft, alignItems: 'center', justifyContent: 'center' },
+  loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  unavailableBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 40 },
+  unavailableText: { fontSize: 13, color: d.textSoft, textAlign: 'center' },
   messagesList: { padding: 18, paddingBottom: 8 },
   messageRow: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 12 },
   messageRowUser: { flexDirection: 'row-reverse' },

@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { Header, EmptyState } from '../../components/common';
+import { notificationService } from '../../services';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
-
-const now = Date.now();
 
 const NotificationsScreen = ({ navigation }) => {
   const { t } = useLanguage();
@@ -14,23 +14,36 @@ const NotificationsScreen = ({ navigation }) => {
   const styles = createStyles(d);
 
   const TYPE_META = {
-    booking: { icon: 'calendar-outline', color: d.line }, reminder: { icon: 'time-outline', color: d.amber },
-    promo:   { icon: 'pricetag-outline', color: d.green }, review: { icon: 'star-outline', color: d.amber },
-    system:  { icon: 'settings-outline', color: d.textSoft },
+    booking_cancelled:     { icon: 'calendar-outline', color: d.danger },
+    job_upcoming_reminder: { icon: 'time-outline', color: d.amber },
+    review_received:       { icon: 'star-outline', color: d.amber },
+    new_job:                { icon: 'briefcase-outline', color: d.line },
+    job_assigned:           { icon: 'briefcase-outline', color: d.line },
+    payout:                 { icon: 'cash-outline', color: d.green },
+    default:                { icon: 'notifications-outline', color: d.textSoft },
   };
 
-  const INITIAL_NOTIFS = [
-    { id: '1', type: 'booking',  title: t('notifications.bookingConfirmedTitle'), body: t('notifications.bookingConfirmedBody'), date: new Date(now - 2 * 60000),       read: false },
-    { id: '2', type: 'reminder', title: t('notifications.reminderTitle'),         body: t('notifications.reminderBody'),         date: new Date(now - 3600000),         read: false },
-    { id: '3', type: 'promo',    title: t('notifications.promoTitle'),            body: t('notifications.promoBody'),            date: new Date(now - 3 * 3600000),     read: true  },
-    { id: '4', type: 'review',   title: t('notifications.reviewTitle'),           body: t('notifications.reviewBody'),           date: new Date(now - 86400000),        read: true  },
-    { id: '5', type: 'system',   title: t('notifications.systemTitle'),           body: t('notifications.systemBody'),           date: new Date(now - 3 * 86400000),    read: true  },
-  ];
+  const [notifs, setNotifs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [notifs, setNotifs] = useState(INITIAL_NOTIFS);
-  const markAllRead = () => setNotifs((p) => p.map((n) => ({ ...n, read: true })));
-  const markRead    = (id) => setNotifs((p) => p.map((n) => (n.id === id ? { ...n, read: true } : n)));
-  const unreadCount = notifs.filter((n) => !n.read).length;
+  const load = useCallback(() => {
+    notificationService.list().then((res) => {
+      if (res.success) setNotifs(res.notifications);
+      setLoading(false);
+    });
+  }, []);
+
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  const markAllRead = async () => {
+    setNotifs((p) => p.map((n) => ({ ...n, isRead: true })));
+    await notificationService.markAllRead();
+  };
+  const markRead = async (id) => {
+    setNotifs((p) => p.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+    await notificationService.markRead(id);
+  };
+  const unreadCount = notifs.filter((n) => !n.isRead).length;
 
   const timeAgo = (date) => {
     const diffMin = Math.floor((Date.now() - date) / 60000);
@@ -43,17 +56,17 @@ const NotificationsScreen = ({ navigation }) => {
   };
 
   const renderItem = ({ item }) => {
-    const meta = TYPE_META[item.type] || TYPE_META.system;
+    const meta = TYPE_META[item.type] || TYPE_META.default;
     return (
-      <TouchableOpacity style={[styles.item, !item.read && styles.itemUnread]} onPress={() => markRead(item.id)} activeOpacity={0.75}>
+      <TouchableOpacity style={[styles.item, !item.isRead && styles.itemUnread]} onPress={() => markRead(item.id)} activeOpacity={0.75}>
         <View style={[styles.iconWrap, { borderColor: meta.color }]}><Ionicons name={meta.icon} size={18} color={meta.color} /></View>
         <View style={styles.itemContent}>
           <View style={styles.itemHeader}>
-            <Text style={[styles.itemTitle, !item.read && styles.itemTitleBold]}>{item.title}</Text>
-            {!item.read ? <View style={styles.unreadDot} /> : null}
+            <Text style={[styles.itemTitle, !item.isRead && styles.itemTitleBold]}>{item.title}</Text>
+            {!item.isRead ? <View style={styles.unreadDot} /> : null}
           </View>
-          <Text style={styles.itemBody} numberOfLines={2}>{item.body}</Text>
-          <Text style={styles.itemTime}>{timeAgo(item.date)}</Text>
+          <Text style={styles.itemBody} numberOfLines={2}>{item.message}</Text>
+          <Text style={styles.itemTime}>{timeAgo(new Date(item.createdAt))}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -66,6 +79,9 @@ const NotificationsScreen = ({ navigation }) => {
         onBackPress={() => navigation.goBack()}
         rightComponent={unreadCount > 0 ? <TouchableOpacity onPress={markAllRead}><Text style={styles.markAll}>{t('notifications.markAllRead')}</Text></TouchableOpacity> : undefined}
       />
+      {loading ? (
+        <View style={styles.loadingBox}><ActivityIndicator color={d.line} size="large" /></View>
+      ) : (
       <FlatList
         data={notifs}
         renderItem={renderItem}
@@ -75,12 +91,14 @@ const NotificationsScreen = ({ navigation }) => {
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={<EmptyState icon="notifications-off-outline" title={t('notifications.empty')} />}
       />
+      )}
     </View>
   );
 };
 
 const createStyles = (d) => StyleSheet.create({
   container: { flex: 1, backgroundColor: d.canvas },
+  loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   markAll: { fontSize: 12, fontWeight: '600', color: d.line },
   list: { paddingVertical: 8 },
   item: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 18, paddingVertical: 14, backgroundColor: d.canvas },

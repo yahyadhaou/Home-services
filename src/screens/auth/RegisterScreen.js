@@ -40,6 +40,7 @@ const RegisterScreen = ({ navigation }) => {
     const result = await register(form);
     setLoading(false);
     if (result.success) navigation.replace('MainTabs', { screen: 'Home' });
+    else setErrors((prev) => ({ ...prev, general: result.error || t('register.registerFailed') }));
   };
 
   return (
@@ -54,6 +55,8 @@ const RegisterScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.heading}>{t('register.heading')}</Text>
         <Text style={styles.subheading}>{t('register.subheading')}</Text>
+
+        {errors.general ? <Text style={styles.generalError}>{errors.general}</Text> : null}
 
         <Input label={t('register.name')} placeholder={t('register.namePlaceholder')} value={form.name} onChangeText={set('name')} icon="person-outline" error={errors.name} />
         <Input label={t('register.email')} placeholder={t('register.emailPlaceholder')} value={form.email} onChangeText={set('email')} icon="mail-outline" keyboardType="email-address" autoCapitalize="none" error={errors.email} />
@@ -93,6 +96,7 @@ const createStyles = (d) => StyleSheet.create({
   content:        { padding: 20, paddingBottom: 40 },
   heading:        { fontSize: 20, fontWeight: '700', color: d.text, marginBottom: 4 },
   subheading:     { fontSize: 13, color: d.textSoft, marginBottom: 22 },
+  generalError:   { backgroundColor: d.dangerSoft, color: d.danger, borderRadius: 8, padding: 10, marginBottom: 14, fontSize: 12 },
   checkRow:       { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
   checkbox:       { width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: d.lineSoft, alignItems: 'center', justifyContent: 'center', marginRight: 10, marginTop: 1 },
   checkboxActive: { backgroundColor: d.line, borderColor: d.line },

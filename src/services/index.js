@@ -3,3 +3,5 @@ export { default as authService }     from './authService';
 export { default as providerService } from './providerService';
 export { default as bookingService }  from './bookingService';
 export { default as locationService } from './locationService';
+export { default as notificationService } from './notificationService';
+export { default as messageService }  from './messageService';

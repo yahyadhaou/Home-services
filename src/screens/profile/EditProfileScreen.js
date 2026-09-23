@@ -3,21 +3,26 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Input, Header } from '../../components/common';
 import { useApp } from '../../context/AppContext';
+import { splitName } from '../../services/authService';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
 import { isValidEmail, isValidPhone, isValidZip, getInitials } from '../../utils';
 
 const EditProfileScreen = ({ navigation }) => {
-  const { user } = useApp();
+  const { user, updateProfile } = useApp();
   const { t } = useLanguage();
   const { colors } = useTheme();
   const d = colors.dispatch;
   const styles = createStyles(d);
   const [form, setForm] = useState({
     name: user?.name || '', email: user?.email || '', phone: user?.phone || '',
+    // Street/city/zip aren't part of the user profile on the backend (that's
+    // a separate saved-addresses concept — see SavedAddressesScreen) — kept
+    // as local-only fields here for now, same as before this screen was wired up.
     street: 'Musterstraße 1', city: 'Essen', zip: '45127',
   });
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
   const set = (key) => (val) => setForm((p) => ({ ...p, [key]: val }));
 
   const validate = () => {
@@ -30,9 +35,19 @@ const EditProfileScreen = ({ navigation }) => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
-    Alert.alert(t('editProfile.savedTitle'), t('editProfile.savedBody'), [{ text: 'OK', onPress: () => navigation.goBack() }]);
+    setSaving(true);
+    const { firstName, lastName } = splitName(form.name);
+    const result = await updateProfile({
+      firstName, lastName, email: form.email, phone: form.phone,
+    });
+    setSaving(false);
+    if (result.success) {
+      Alert.alert(t('editProfile.savedTitle'), t('editProfile.savedBody'), [{ text: 'OK', onPress: () => navigation.goBack() }]);
+    } else {
+      setErrors((prev) => ({ ...prev, general: result.error || t('editProfile.saveFailed') }));
+    }
   };
 
   return (
@@ -45,6 +60,8 @@ const EditProfileScreen = ({ navigation }) => {
           <Text style={styles.avatarHint}>{t('editProfile.changePhoto')}</Text>
         </View>
 
+        {errors.general ? <Text style={styles.generalError}>{errors.general}</Text> : null}
+
         <Text style={styles.sectionLabel}>{t('editProfile.personalData')}</Text>
         <Input label={t('editProfile.fullName')} value={form.name} onChangeText={set('name')} icon="person-outline" placeholder="Max Mustermann" error={errors.name} />
         <Input label={t('editProfile.email')} value={form.email} onChangeText={set('email')} icon="mail-outline" placeholder="email@example.com" keyboardType="email-address" autoCapitalize="none" error={errors.email} />
@@ -55,7 +72,7 @@ const EditProfileScreen = ({ navigation }) => {
         <Input label={t('editProfile.city')} value={form.city} onChangeText={set('city')} icon="business-outline" placeholder="Essen" />
         <Input label={t('editProfile.zip')} value={form.zip} onChangeText={set('zip')} icon="mail-open-outline" placeholder="45127" keyboardType="number-pad" error={errors.zip} />
 
-        <Button onPress={handleSave} icon="checkmark" style={styles.saveBtn}>{t('editProfile.saveButton')}</Button>
+        <Button onPress={handleSave} loading={saving} icon="checkmark" style={styles.saveBtn}>{t('editProfile.saveButton')}</Button>
       </ScrollView>
     </View>
   );
@@ -69,6 +86,7 @@ const createStyles = (d) => StyleSheet.create({
   avatarText: { fontSize: 30, fontWeight: '700', color: d.line },
   changeAvatarBtn: { position: 'absolute', bottom: 18, right: '30%', width: 28, height: 28, borderRadius: 14, backgroundColor: d.line, alignItems: 'center', justifyContent: 'center' },
   avatarHint: { fontSize: 12, color: d.line, marginTop: 8 },
+  generalError: { backgroundColor: d.dangerSoft, color: d.danger, borderRadius: 8, padding: 10, marginBottom: 14, fontSize: 12 },
   sectionLabel: { fontSize: 13, fontWeight: '700', color: d.text, marginBottom: 10, marginTop: 10 },
   saveBtn: { marginTop: 10 },
 });

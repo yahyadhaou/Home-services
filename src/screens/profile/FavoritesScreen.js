@@ -1,25 +1,31 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Header, EmptyState } from '../../components/common';
 import { useApp } from '../../context/AppContext';
+import { providerService } from '../../services';
+import { useLocationAccess } from '../../context/LocationContext';
 import { useLanguage } from '../../i18n';
 import { useTheme } from '../../constants/ThemeContext';
-
-const ALL_PROVIDERS = [
-  { id: '1', name: 'Rüttenscheider Sanitärtechnik GmbH', providerType: 'company', rating: 4.9, reviews: 234, category: 'Klempner',   distance: '1.2 km', hourlyRate: 68 },
-  { id: '3', name: 'ElektroMeister Krause GmbH',          providerType: 'company', rating: 4.8, reviews: 156, category: 'Elektriker', distance: '2.8 km', hourlyRate: 72 },
-  { id: '7', name: 'Wärmetechnik Ruhr GmbH',              providerType: 'company', rating: 4.7, reviews: 178, category: 'Heizung',    distance: '4.6 km', hourlyRate: 75 },
-  { id: '5', name: 'Blitzblank Gebäudereinigung GmbH',    providerType: 'company', rating: 4.9, reviews: 312, category: 'Reinigung',  distance: '3.4 km', hourlyRate: 35 },
-];
 
 const FavoritesScreen = ({ navigation }) => {
   const { favorites, removeFavorite } = useApp();
   const { t } = useLanguage();
   const { colors } = useTheme();
+  const { effectiveCoords } = useLocationAccess();
   const d = colors.dispatch;
   const styles = createStyles(d);
-  const favProviders = ALL_PROVIDERS.filter((p) => favorites.includes(p.id));
+  const [allProviders, setAllProviders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    providerService.getProviders(null, effectiveCoords).then((res) => {
+      if (res.success) setAllProviders(res.providers);
+      setLoading(false);
+    });
+  }, [effectiveCoords]);
+
+  const favProviders = allProviders.filter((p) => favorites.includes(p.id));
 
   const renderItem = ({ item }) => (
     <TouchableOpacity onPress={() => navigation.navigate('ProviderDetail', { provider: item })} activeOpacity={0.8}>
@@ -30,7 +36,7 @@ const FavoritesScreen = ({ navigation }) => {
             <Text style={styles.name}>{item.name}</Text>
             <Text style={styles.category}>{item.category}</Text>
             <View style={styles.metaRow}>
-              <Ionicons name="star" size={12} color={d.amber} /><Text style={styles.rating}>{item.rating}</Text><Text style={styles.reviews}>({item.reviews})</Text>
+              <Ionicons name="star" size={12} color={d.amber} /><Text style={styles.rating}>{item.rating != null ? item.rating.toFixed(1) : '–'}</Text><Text style={styles.reviews}>({item.reviews})</Text>
               <View style={styles.dot} /><Text style={styles.distance}>{item.distance}</Text>
               <View style={styles.dot} /><Text style={styles.price}>€{item.hourlyRate}/h</Text>
             </View>
@@ -44,28 +50,33 @@ const FavoritesScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Header title={t('favorites.title')} onBackPress={() => navigation.goBack()} />
-      <FlatList
-        data={favProviders}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <EmptyState
-            icon="heart-outline"
-            title={t('favorites.empty')}
-            subtitle={t('favorites.emptySubtitle')}
-            actionLabel={t('favorites.discoverButton')}
-            onAction={() => navigation.navigate('MainTabs', { screen: 'Home' })}
-          />
-        }
-      />
+      {loading ? (
+        <View style={styles.loadingBox}><ActivityIndicator color={d.line} size="large" /></View>
+      ) : (
+        <FlatList
+          data={favProviders}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <EmptyState
+              icon="heart-outline"
+              title={t('favorites.empty')}
+              subtitle={t('favorites.emptySubtitle')}
+              actionLabel={t('favorites.discoverButton')}
+              onAction={() => navigation.navigate('MainTabs', { screen: 'Home' })}
+            />
+          }
+        />
+      )}
     </View>
   );
 };
 
 const createStyles = (d) => StyleSheet.create({
   container: { flex: 1, backgroundColor: d.canvas },
+  loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { padding: 18 },
   card: { backgroundColor: d.panel, borderWidth: 1, borderColor: d.lineSoft, borderRadius: 12, padding: 13, marginBottom: 10 },
   row: { flexDirection: 'row', alignItems: 'center' },

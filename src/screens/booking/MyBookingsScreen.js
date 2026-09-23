@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,21 +10,15 @@ import { useTheme } from '../../constants/ThemeContext';
 const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
 const SERVICE_ICONS = { Klempner: 'water-outline', Elektriker: 'flash-outline', Reinigung: 'sparkles-outline', Maler: 'color-palette-outline', Schreiner: 'hammer-outline', Gärtner: 'leaf-outline', Umzug: 'car-outline', Handwerker: 'construct-outline' };
 
-const MOCK = [
-  { id: 'm1', service: 'Klempner',   provider: 'Rüttenscheider Sanitärtechnik GmbH', date: '15.05.2026', time: '14:00', status: 'upcoming', total: 76,
-    extensionRequest: { extraHours: 1.5, extraPrice: 63, note: 'Found a corroded pipe behind the wall while working — needs replacing to finish the job properly.' } },
-  { id: 'm2', service: 'Reinigung',  provider: 'Blitzblank Gebäudereinigung GmbH',   date: '10.05.2026', time: '10:00', status: 'completed', frequency: 'weekly' },
-  { id: 'm3', service: 'Elektriker', provider: 'ElektroMeister Krause GmbH',         date: '05.05.2026', time: '16:00', status: 'completed' },
-  { id: 'm4', service: 'Maler',      provider: 'Farbwerk Malerbetrieb GmbH',         date: '20.05.2026', time: '09:00', status: 'pending'   },
-];
-
 const MyBookingsScreen = ({ navigation }) => {
-  const { bookings } = useApp();
+  const { bookings, refreshBookings } = useApp();
   const { t } = useLanguage();
   const { colors } = useTheme();
   const d = colors.dispatch;
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState('all');
+
+  useEffect(() => { refreshBookings(); }, []);
 
   const STATUS = {
     upcoming:  { label: t('myBookings.statusUpcoming'),  color: d.line },
@@ -39,8 +33,7 @@ const MyBookingsScreen = ({ navigation }) => {
     { key: 'completed', label: t('myBookings.filterCompleted') },
   ];
 
-  const allBookings = bookings.length > 0 ? bookings : MOCK;
-  const filtered = filter === 'all' ? allBookings : allBookings.filter((b) => b.status === filter);
+  const filtered = filter === 'all' ? bookings : bookings.filter((b) => b.status === filter);
 
   const bookAgain = (job) => navigation.navigate('Booking', { provider: { name: job.provider }, service: job.service });
 
